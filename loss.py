@@ -118,6 +118,8 @@ class JointEdgeSegLoss(nn.Module):
 
         weight = torch.from_numpy(weight)
         weight = weight.cuda()
+
+        # FIXME: already applies sigmoid
         loss = F.binary_cross_entropy_with_logits(
             log_p, target_t, weight, size_average=True
         )

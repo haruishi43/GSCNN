@@ -1,17 +1,17 @@
-"""
-Copyright (C) 2019 NVIDIA Corporation.  All rights reserved.
-Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
-"""
+#!/usr/bin/env python3
 
-import torch.nn as nn
+import math
+
+import numpy as np
+
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.modules.conv import _ConvNd
 from torch.nn.modules.utils import _pair
-import numpy as np
-import math
-import network.mynn as mynn
+
 import my_functionals.custom_functional as myF
+import network.mynn as mynn
 
 
 class GatedSpatialConv2d(_ConvNd):
@@ -26,7 +26,7 @@ class GatedSpatialConv2d(_ConvNd):
         groups=1,
         bias=False,
     ):
-        """
+        """Gated Spatial Conv2D
 
         :param in_channels:
         :param out_channels:
@@ -42,6 +42,7 @@ class GatedSpatialConv2d(_ConvNd):
         stride = _pair(stride)
         padding = _pair(padding)
         dilation = _pair(dilation)
+
         super(GatedSpatialConv2d, self).__init__(
             in_channels,
             out_channels,
@@ -66,13 +67,21 @@ class GatedSpatialConv2d(_ConvNd):
         )
 
     def forward(self, input_features, gating_features):
-        """
+        """forward
 
-        :param input_features:  [NxCxHxW]  featuers comming from the shape branch (canny branch).
-        :param gating_features: [Nx1xHxW] features comming from the texture branch (resnet). Only one channel feature map.
+        :param input_features:
+          - [NxCxHxW] featuers comming from the shape branch (canny branch).
+        :param gating_features:
+          - [Nx1xHxW] features comming from the texture branch (resnet)
+             Only one channel feature map.
         :return:
         """
-        alphas = self._gate_conv(torch.cat([input_features, gating_features], dim=1))
+        alphas = self._gate_conv(
+            torch.cat(
+                [input_features, gating_features],
+                dim=1,
+            )
+        )
 
         input_features = input_features * (alphas + 1)
         return F.conv2d(
@@ -108,7 +117,7 @@ class HighFrequencyGatedSpatialConv2d(_ConvNd):
         groups=1,
         bias=False,
     ):
-        """
+        """High-Frequency Gated Spatial Conv2D
 
         :param in_channels:
         :param out_channels:
@@ -124,6 +133,7 @@ class HighFrequencyGatedSpatialConv2d(_ConvNd):
         stride = _pair(stride)
         padding = _pair(padding)
         dilation = _pair(dilation)
+
         super(HighFrequencyGatedSpatialConv2d, self).__init__(
             in_channels,
             out_channels,
@@ -150,7 +160,14 @@ class HighFrequencyGatedSpatialConv2d(_ConvNd):
         sigma = 3
 
         x_cord = torch.arange(kernel_size).float()
-        x_grid = x_cord.repeat(kernel_size).view(kernel_size, kernel_size).float()
+        x_grid = (
+            x_cord.repeat(kernel_size)
+            .view(
+                kernel_size,
+                kernel_size,
+            )
+            .float()
+        )
         y_grid = x_grid.t().float()
         xy_grid = torch.stack([x_grid, y_grid], dim=-1).float()
 
@@ -186,18 +203,31 @@ class HighFrequencyGatedSpatialConv2d(_ConvNd):
         )
 
     def forward(self, input_features, gating_features):
-        """
+        """forward
 
-        :param input_features:  [NxCxHxW]  featuers comming from the shape branch (canny branch).
-        :param gating_features: [Nx1xHxW] features comming from the texture branch (resnet). Only one channel feature map.
+        :param input_features:
+          - [NxCxHxW] featuers comming from the shape branch (canny branch).
+        :param gating_features:
+          - [Nx1xHxW] features comming from the texture branch (resnet).
+            Only one channel feature map.
         :return:
         """
         n, c, h, w = input_features.size()
         smooth_features = self.gaussian_filter(input_features)
         dog_features = input_features - smooth_features
-        dog_features = self.cw(torch.cat((dog_features, input_features), dim=1))
+        dog_features = self.cw(
+            torch.cat(
+                (dog_features, input_features),
+                dim=1,
+            )
+        )
 
-        alphas = self._gate_conv(torch.cat([input_features, gating_features], dim=1))
+        alphas = self._gate_conv(
+            torch.cat(
+                [input_features, gating_features],
+                dim=1,
+            )
+        )
 
         dog_features = dog_features * (alphas + 1)
 
@@ -217,11 +247,13 @@ class HighFrequencyGatedSpatialConv2d(_ConvNd):
             nn.init.zeros_(self.bias)
 
 
-def t():
+def test():
     import matplotlib.pyplot as plt
 
     canny_map_filters_in = 8
-    canny_map = np.random.normal(size=(1, canny_map_filters_in, 10, 10))  # NxCxHxW
+    canny_map = np.random.normal(
+        size=(1, canny_map_filters_in, 10, 10),
+    )  # NxCxHxW
     resnet_map = np.random.normal(size=(1, 1, 10, 10))  # NxCxHxW
     plt.imshow(canny_map[0, 0])
     plt.show()
@@ -230,11 +262,16 @@ def t():
     resnet_map = torch.from_numpy(resnet_map).float()
 
     gconv = GatedSpatialConv2d(
-        canny_map_filters_in, canny_map_filters_in, kernel_size=3, stride=1, padding=1
+        canny_map_filters_in,
+        canny_map_filters_in,
+        kernel_size=3,
+        stride=1,
+        padding=1,
     )
-    output_map = gconv(canny_map, resnet_map)
+    _ = gconv(canny_map, resnet_map)  # output_map
+
     print("done")
 
 
 if __name__ == "__main__":
-    t()
+    test()

@@ -15,17 +15,17 @@ RUN apt-get install -y python3-pip python3-dev vim htop python3-tk pkg-config
 RUN pip3 install --upgrade pip==9.0.1
 
 # Install from pip
-RUN pip3 install pyyaml \
-                 scipy==1.1.0 \
-                 numpy \
-                 tensorflow \
-                 scikit-learn \
-                 scikit-image \
-                 matplotlib \
-                 opencv-python \
-                 torch==1.0.0 \
-                 torchvision==0.2.0 \
-                 torch-encoding==1.0.1 \
-                 tensorboardX \
-                 tqdm
-
+RUN pip3 install \
+    pyyaml \
+    scipy==1.1.0 \
+    numpy \
+    tensorflow \
+    scikit-learn \
+    scikit-image \
+    matplotlib \
+    opencv-python \
+    torch==1.0.0 \
+    torchvision==0.2.0 \
+    torch-encoding==1.0.1 \
+    tensorboardX \
+    tqdm

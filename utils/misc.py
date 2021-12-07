@@ -1,23 +1,26 @@
-"""
-Copyright (C) 2019 NVIDIA Corporation.  All rights reserved.
-Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
-"""
+#!/usr/bin/env python3
 
-import sys
-import re
-import os
-import shutil
-import torch
 from datetime import datetime
 import logging
-from subprocess import call
+import os
+import re
 import shlex
-from tensorboardX import SummaryWriter
+import shutil
+from subprocess import call
+import sys
+
 import numpy as np
-from utils.image_page import ImagePage
+
+from PIL import Image
+
+import torch
+from torch.utils.tensorboard import SummaryWriter
+
 import torchvision.transforms as standard_transforms
 import torchvision.utils as vutils
-from PIL import Image
+
+from utils.image_page import ImagePage
+
 
 # Create unique output dir name based on non-default command line args
 def make_exp_name(args, parser):
@@ -335,7 +338,7 @@ def fast_hist(label_pred, label_true, num_classes):
 def print_evaluate_results(hist, iu, writer=None, epoch=0, dataset=None):
     try:
         id2cat = dataset.id2cat
-    except:
+    except Exception:
         id2cat = {i: i for i in range(dataset.num_classes)}
     iu_false_positive = hist.sum(axis=1) - np.diag(hist)
     iu_false_negative = hist.sum(axis=0) - np.diag(hist)

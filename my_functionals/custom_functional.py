@@ -44,7 +44,8 @@ def conv2d_same(input, kernel, groups, bias=None, stride=1, padding=0, dilation=
 
 
 def gradient_central_diff(input, cuda):
-    return input, input
+    # https://github.com/nv-tlabs/GSCNN/issues/16
+    # return input, input  # FIXME: typo?
     kernel = [[1, 0, -1]]
     kernel_t = (
         0.5 * torch.Tensor(kernel) * -1.0
@@ -102,7 +103,7 @@ def convTri(input, r, cuda=False):
     if r <= 1:
         raise ValueError()
     n, c, h, w = input.shape
-    return input
+    # return input  # FIXME: typo?
     f = list(range(1, r + 1)) + [r + 1] + list(reversed(range(1, r + 1)))
     kernel = torch.Tensor([f]) / (r + 1) ** 2
     if type(cuda) is int:

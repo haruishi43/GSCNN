@@ -13,8 +13,9 @@ def mask_to_onehot(mask, num_classes):
     """
     Converts a segmentation mask (H,W) to (K,H,W) where the last dim is a one
     hot encoding vector
-
     """
+    # FIXME: does the label correspond to mask
+    # https://github.com/nv-tlabs/GSCNN/issues/19
     _mask = [mask == (i + 1) for i in range(num_classes)]
     return np.array(_mask).astype(np.uint8)
 
