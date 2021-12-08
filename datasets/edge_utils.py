@@ -1,11 +1,11 @@
-"""
-Copyright (C) 2019 NVIDIA Corporation.  All rights reserved.
-Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
-"""
+#!/usr/bin/env python3
 
-import os
+# import os
+
 import numpy as np
-from PIL import Image
+
+# from PIL import Image
+
 from scipy.ndimage.morphology import distance_transform_edt
 
 

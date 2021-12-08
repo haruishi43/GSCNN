@@ -1,13 +1,10 @@
-"""
-Copyright (C) 2019 NVIDIA Corporation.  All rights reserved.
-Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
-"""
+#!/usr/bin/env python3
 
 from __future__ import absolute_import
 from __future__ import division
+
 import argparse
 from functools import partial
-from config import cfg, assert_and_infer_cfg
 import logging
 import math
 import os
@@ -16,12 +13,15 @@ import sys
 import torch
 import numpy as np
 
-from utils.misc import AverageMeter, prep_experiment, evaluate_eval, fast_hist
-from utils.f_boundary import eval_mask_boundary
+from config import cfg, assert_and_infer_cfg
 import datasets
 import loss
 import network
 import optimizer
+
+from utils.misc import AverageMeter, prep_experiment, evaluate_eval, fast_hist
+from utils.f_boundary import eval_mask_boundary
+
 
 # Argument Parser
 parser = argparse.ArgumentParser(description="GSCNN")

@@ -9,15 +9,20 @@ git clone https://github.com/nv-tlabs/GSCNN
 cd GSCNN
 ```
 
-#### Download pretrained models
+## Acceleration
+
+- [`accimage`](https://github.com/pytorch/accimage)
+
+## Download pretrained models
 
 Download the pretrained model from the [Google Drive Folder](https://drive.google.com/file/d/1wlhAXg-PfoUM-rFy2cksk43Ng3PpsK2c/view), and save it in 'checkpoints/'
 
-#### Download inferred images
+## Download inferred images
 
 Download (if needed) the inferred images from the [Google Drive Folder](https://drive.google.com/file/d/105WYnpSagdlf5-ZlSKWkRVeq-MyKLYOV/view)
 
-#### Evaluation (Cityscapes)
+
+# Evaluation (Cityscapes)
 
 ```bash
 python train.py --evaluate --snapshot checkpoints/best_cityscapes_checkpoint.pth

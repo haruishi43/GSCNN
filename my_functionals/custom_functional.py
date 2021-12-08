@@ -1,12 +1,11 @@
-"""
-Copyright (C) 2019 NVIDIA Corporation.  All rights reserved.
-Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
-"""
+#!/usr/bin/env python3
+
+import numpy as np
 
 import torch
 import torch.nn.functional as F
-from torchvision.transforms.functional import pad
-import numpy as np
+
+# from torchvision.transforms.functional import pad
 
 
 def calc_pad_same(in_siz, out_siz, stride, ksize):

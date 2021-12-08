@@ -156,7 +156,7 @@ def db_eval_boundary(foreground_mask, gt_mask, ignore_mask, bound_th=0.008):
     n_fg = np.sum(fg_boundary)
     n_gt = np.sum(gt_boundary)
 
-    #% Compute precision and recall
+    # Compute precision and recall
     if n_fg == 0 and n_gt > 0:
         precision = 1
         recall = 0
@@ -234,8 +234,8 @@ def seg2bmap(seg, width=None, height=None):
         for x in range(w):
             for y in range(h):
                 if b[y, x]:
-                    j = 1 + floor((y - 1) + height / h)
-                    i = 1 + floor((x - 1) + width / h)
+                    j = 1 + np.floor((y - 1) + height / h)
+                    i = 1 + np.floor((x - 1) + width / h)
                     bmap[j, i] = 1
 
     return bmap

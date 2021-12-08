@@ -1,41 +1,18 @@
-"""
-Copyright (C) 2019 NVIDIA Corporation.  All rights reserved.
-Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
-
-# Code borrowded from:
-# https://github.com/zijundeng/pytorch-semantic-segmentation/blob/master/utils/joint_transforms.py
-#
-#
-# MIT License
-#
-# Copyright (c) 2017 ZijunDeng
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-"""
+#!/usr/bin/env python3
 
 import math
 import numbers
 import random
-from PIL import Image, ImageOps
+
 import numpy as np
-import random
+
+from PIL import Image, ImageOps
+
+from scipy.ndimage import maximum_filter
+from scipy.ndimage.morphology import (
+    binary_erosion,
+    generate_binary_structure,
+)
 
 
 class Compose(object):
@@ -217,7 +194,7 @@ class PadImage(object):
             )
 
         w, h = img.size
-        ##Pad
+        # Pad
         img = ImageOps.expand(img, border=(0, 0, tw - w, th - h), fill=0)
         mask = ImageOps.expand(
             mask, border=(0, 0, tw - w, th - h), fill=self.ignore_index

@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 
 import torch
-import torch.nn.functional as F
+from torch.autograd import Variable
 from torch import nn
-from network import SEresnext
+import torch.nn.functional as F
+
+# from config import cfg
+
+# from network import SEresnext
 from network import Resnet
 from network.wider_resnet import wider_resnet38_a2
-from config import cfg
 from network.mynn import initialize_weights, Norm2d
-from torch.autograd import Variable
+
 
 from my_functionals import GatedSpatialConv as gsc
 
@@ -77,7 +80,7 @@ class SideOutputCrop(nn.Module):
                 padding=upconv_pad,
                 bias=False,
             )
-            ##doing crops
+            # doing crops
             if self._do_crops:
                 self.crops = Crop(2, offset=kernel_sz // 4)
             else:

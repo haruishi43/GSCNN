@@ -1,47 +1,24 @@
-"""
-Copyright (C) 2019 NVIDIA Corporation.  All rights reserved.
-Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
-
-# Code borrowded from:
-# https://github.com/zijundeng/pytorch-semantic-segmentation/blob/master/utils/transforms.py
-#
-#
-# MIT License
-#
-# Copyright (c) 2017 ZijunDeng
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-"""
+#!/usr/bin/env python3
 
 import random
+
 import numpy as np
+
+# from PIL import Image, ImageFilter, ImageEnhance
+from PIL import Image, ImageEnhance
+
+# from scipy import ndimage
+# from scipy.misc import imsave
+from scipy.ndimage.interpolation import shift
+
 from skimage.filters import gaussian
 from skimage.restoration import denoise_bilateral
-import torch
-from PIL import Image, ImageFilter, ImageEnhance
-import torchvision.transforms as torch_tr
-from scipy import ndimage
-from config import cfg
-from scipy.ndimage.interpolation import shift
-from scipy.misc import imsave
 from skimage.segmentation import find_boundaries
+
+import torch
+import torchvision.transforms as torch_tr
+
+from config import cfg
 
 
 class RandomVerticalFlip(object):
@@ -88,7 +65,7 @@ class RelaxedBoundaryLossToTensor(object):
 
         img_arr[img_arr == self.ignore_id] = self.num_classes
 
-        if cfg.STRICTBORDERCLASS != None:
+        if cfg.STRICTBORDERCLASS is not None:
             one_hot_orig = self.new_one_hot_converter(img_arr)
             mask = np.zeros((img_arr.shape[0], img_arr.shape[1]))
             for cls in cfg.STRICTBORDERCLASS:
@@ -109,7 +86,7 @@ class RelaxedBoundaryLossToTensor(object):
 
         one_hot[one_hot > 1] = 1
 
-        if cfg.STRICTBORDERCLASS != None:
+        if cfg.STRICTBORDERCLASS is not None:
             one_hot = np.where(np.expand_dims(mask, 2), one_hot_orig, one_hot)
 
         one_hot = np.moveaxis(one_hot, -1, 0)
@@ -263,7 +240,7 @@ def adjust_hue(img, hue_factor):
         PIL Image: Hue adjusted image.
     """
     if not (-0.5 <= hue_factor <= 0.5):
-        raise ValueError("hue_factor is not in [-0.5, 0.5].".format(hue_factor))
+        raise ValueError("hue_factor {} is not in [-0.5, 0.5].".format(hue_factor))
 
     if not _is_pil_image(img):
         raise TypeError("img should be PIL Image. Got {}".format(type(img)))
