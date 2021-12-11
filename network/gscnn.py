@@ -220,7 +220,7 @@ class GSCNN(nn.Module):
         self.interpolate = F.interpolate
         del wide_resnet
 
-        self.dsn1 = nn.Conv2d(64, 1, 1)
+        self.dsn1 = nn.Conv2d(64, 1, 1)  # NOTE: not used
         self.dsn3 = nn.Conv2d(256, 1, 1)
         self.dsn4 = nn.Conv2d(512, 1, 1)
         self.dsn7 = nn.Conv2d(4096, 1, 1)
