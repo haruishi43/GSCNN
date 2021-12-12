@@ -217,8 +217,12 @@ class GSCNN(nn.Module):
         self.mod7 = wide_resnet.mod7
         self.pool2 = wide_resnet.pool2
         self.pool3 = wide_resnet.pool3
-        self.interpolate = F.interpolate
+
         del wide_resnet
+
+        # NOTE: https://pytorch.org/docs/stable/generated/torch.nn.functional.interpolate.html
+        # I see most projects use `align_corners=True`
+        self.interpolate = F.interpolate
 
         self.dsn1 = nn.Conv2d(64, 1, 1)  # NOTE: not used
         self.dsn3 = nn.Conv2d(256, 1, 1)
@@ -241,6 +245,7 @@ class GSCNN(nn.Module):
 
         self.aspp = _AtrousSpatialPyramidPoolingModule(4096, 256, output_stride=8)
 
+        # Bottlenecks to reduce feature dim?
         self.bot_fine = nn.Conv2d(128, 48, kernel_size=1, bias=False)
         self.bot_aspp = nn.Conv2d(1280 + 256, 256, kernel_size=1, bias=False)
 
