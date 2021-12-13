@@ -86,7 +86,7 @@ class JointEdgeSegLoss(nn.Module):
         self.att_weight = att_weight
         self.dual_weight = dual_weight
 
-        self.dual_task = DualTaskLoss()
+        self.dual_task = DualTaskLoss(cuda=True)  # FIXME: set to cuda for now
 
     def bce2d(self, input, target):
         n, c, h, w = input.size()

@@ -121,7 +121,7 @@ def prep_experiment(args, parser):
         str(args) + "\n\n"
     )
 
-    writer = SummaryWriter(logdir=args.tb_exp_path, comment=args.tb_tag)
+    writer = SummaryWriter(log_dir=args.tb_exp_path, comment=args.tb_tag)
     return writer
 
 

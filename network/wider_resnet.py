@@ -315,6 +315,9 @@ class WiderResNetA2(nn.Module):
             # Create blocks for module
             blocks = []
             for block_id in range(num):
+
+                # NOTE: for `a2` we set the number of dilation and strides accordingly
+
                 if not dilation:
                     dil = 1
                     stride = 2 if block_id == 0 and 2 <= mod_id <= 4 else 1
@@ -326,6 +329,8 @@ class WiderResNetA2(nn.Module):
                     else:
                         dil = 1
                     stride = 2 if block_id == 0 and mod_id == 2 else 1
+
+                # NOTE: there are also dropouts
 
                 if mod_id == 4:
                     drop = partial(nn.Dropout, p=0.3)

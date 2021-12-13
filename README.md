@@ -24,6 +24,8 @@ Download (if needed) the inferred images from the [Google Drive Folder](https://
 
 # Evaluation (Cityscapes)
 
+The code takes around 7 hours
+
 ```bash
 python train.py --evaluate --snapshot checkpoints/best_cityscapes_checkpoint.pth
 ```
