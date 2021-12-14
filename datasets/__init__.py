@@ -86,7 +86,7 @@ def setup_loaders(args):
     target_train_transform = extended_transforms.MaskToTensor()
 
     if args.dataset == "cityscapes":
-        city_mode = "train"  ## Can be trainval
+        city_mode = "train"  # Can be trainval
         city_quality = "fine"
         train_set = args.dataset_cls.CityScapes(
             city_quality,

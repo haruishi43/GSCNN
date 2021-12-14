@@ -56,7 +56,7 @@ def assert_and_infer_cfg(args, make_immutable=True):
         import encoding
 
         __C.MODEL.BN = "syncnorm"
-        __C.MODEL.BNFUNC = encoding.nn.BatchNorm2d
+        __C.MODEL.BNFUNC = encoding.nn.BatchNorm2d  # FIXME: it's deprecated
     else:
         __C.MODEL.BNFUNC = torch.nn.BatchNorm2d
         print("Using regular batch norm")

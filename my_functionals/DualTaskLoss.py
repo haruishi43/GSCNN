@@ -119,10 +119,11 @@ class DualTaskLoss(nn.Module):
 
         g = _gumbel_softmax_sample(input_logits.view(N, C, -1), tau=0.5)
         g = g.reshape((N, C, H, W))
-        g = compute_grad_mag(g, cuda=self._cuda)
+        g = compute_grad_mag(g, cuda=self._cuda)  # FIXME: what is this for?
 
         g_hat = compute_grad_mag(gt_semantic_masks, cuda=self._cuda)
 
+        # general pixel-wise loss
         g = g.view(N, -1)
         g_hat = g_hat.view(N, -1)
         loss_ewise = F.l1_loss(g, g_hat, reduction="none", reduce=False)

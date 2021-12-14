@@ -3,6 +3,10 @@ Copyright (C) 2019 NVIDIA Corporation.  All rights reserved.
 Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
 """
 
+# FIXME: see
+# https://github.com/NVIDIA/semantic-segmentation/blob/main/loss/utils.py
+# for updates
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -157,7 +161,7 @@ class ImageBasedCrossEntropyLoss2d(nn.Module):
         norm=False,
         upper_bound=1.0,
     ):
-        super(ImageBasedCrossEntropyLoss2d, self).__init__()
+        super(ImageBasedCrossEntropyLoss2d, self).f__init__()
         logging.info("Using Per Image based weighted loss")
         self.num_classes = classes
         self.nll_loss = nn.NLLLoss2d(weight, size_average, ignore_index)

@@ -98,6 +98,9 @@ def convTri(input, r, cuda=False):
     :param r: integer filter radius
     :param cuda: move the kernel to gpu
     :return:
+
+    # ref: https://github.com/pdollar/toolbox/blob/master/channels/convTri.m
+
     """
     if r <= 1:
         raise ValueError()
@@ -141,6 +144,8 @@ def convTri(input, r, cuda=False):
 
 
 def compute_normal(E, cuda=False):
+    # NOTE: is this the same normal used in 'STEAL'?
+
     if torch.sum(torch.isnan(E)) != 0:
         print("nans found here")
         import ipdb
@@ -165,6 +170,8 @@ def compute_normal(E, cuda=False):
 
 
 def compute_normal_2(E, cuda=False):
+    # output Oyy and Oxx... for what?
+
     if torch.sum(torch.isnan(E)) != 0:
         print("nans found here")
         import ipdb
@@ -189,6 +196,9 @@ def compute_normal_2(E, cuda=False):
 
 
 def compute_grad_mag(E, cuda=False):
+
+    # FIXME: what is `mag`?
+
     E_ = convTri(E, 4, cuda)
     Ox, Oy = numerical_gradients_2d(E_, cuda)
     mag = torch.sqrt(torch.mul(Ox, Ox) + torch.mul(Oy, Oy) + 1e-6)
