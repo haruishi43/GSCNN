@@ -124,6 +124,10 @@ class JointEdgeSegLoss(nn.Module):
         weight = weight.cuda()
 
         # FIXME: already applies sigmoid
+        # https://github.com/nv-tlabs/GSCNN/issues/62
+        # https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html#torch.nn.BCEWithLogitsLoss
+        # "this loss combines a Sigmoid layer and the BCELoss in one single class."
+        # FIXME: why isn't `target_trans` used?
         loss = F.binary_cross_entropy_with_logits(
             log_p, target_t, weight, size_average=True
         )
@@ -161,6 +165,8 @@ class ImageBasedCrossEntropyLoss2d(nn.Module):
         norm=False,
         upper_bound=1.0,
     ):
+        # FIXME: the codebase is old
+        # https://github.com/NVIDIA/semantic-segmentation/blob/main/loss/utils.py
         super(ImageBasedCrossEntropyLoss2d, self).f__init__()
         logging.info("Using Per Image based weighted loss")
         self.num_classes = classes
@@ -200,9 +206,14 @@ class ImageBasedCrossEntropyLoss2d(nn.Module):
 # Cross Entroply NLL Loss
 class CrossEntropyLoss2d(nn.Module):
     def __init__(self, weight=None, size_average=True, ignore_index=255):
+        # FIXME: convert the official CrossEntropy loss
+        # CrossEntropyLoss implicitly adds a softmax that normalizes the output layer
         super(CrossEntropyLoss2d, self).__init__()
         logging.info("Using Cross Entropy Loss")
         self.nll_loss = nn.NLLLoss2d(weight, size_average, ignore_index)
 
     def forward(self, inputs, targets):
+        # FIXME:
+        # UserWarning: Implicit dimension choice for log_softmax has been deprecated.
+        # Change the call to include dim=X as an argument.
         return self.nll_loss(F.log_softmax(inputs), targets)
