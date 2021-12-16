@@ -109,8 +109,8 @@ name2label      = { label.name    : label for label in labels           }
 id2label        = { label.id      : label for label in labels           }
 # trainId to label object
 trainId2label   = { label.trainId : label for label in reversed(labels) }
-# label2trainid
-label2trainid   = { label.id      : label.trainId for label in labels   }
+# label2trainId
+label2trainId   = { label.id      : label.trainId for label in labels   }
 # trainId to label object
 trainId2name    = { label.trainId : label.name for label in labels      }
 trainId2color   = { label.trainId : label.color for label in labels     }

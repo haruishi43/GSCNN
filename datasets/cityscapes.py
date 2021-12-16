@@ -17,7 +17,7 @@ import datasets.cityscapes_labels as cityscapes_labels
 import datasets.edge_utils as edge_utils
 
 trainid_to_name = cityscapes_labels.trainId2name
-id_to_trainid = cityscapes_labels.label2trainid
+id_to_trainid = cityscapes_labels.label2trainId
 num_classes = 19
 ignore_label = 255
 root = cfg.DATASET.CITYSCAPES_DIR
