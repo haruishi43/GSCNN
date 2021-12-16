@@ -315,7 +315,9 @@ class GSCNN(nn.Module):
         cs = self.gate3(cs, s7)
         cs = self.fuse(cs)
         cs = F.interpolate(cs, x_size[2:], mode="bilinear", align_corners=True)
-        edge_out = self.sigmoid(cs)  # FIXME: https://github.com/nv-tlabs/GSCNN/issues/62
+        edge_out = self.sigmoid(
+            cs
+        )  # FIXME: https://github.com/nv-tlabs/GSCNN/issues/62
         cat = torch.cat((edge_out, canny), dim=1)
         acts = self.cw(cat)
         acts = self.sigmoid(acts)

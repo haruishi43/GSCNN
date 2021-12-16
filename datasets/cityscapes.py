@@ -1,20 +1,19 @@
-"""
-Copyright (C) 2019 NVIDIA Corporation.  All rights reserved.
-Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
-"""
+#!/usr/bin/env python3
 
-import os
-import numpy as np
-import torch
-from PIL import Image
-from torch.utils import data
 from collections import defaultdict
-import math
-import logging
-import datasets.cityscapes_labels as cityscapes_labels
 import json
-from config import cfg
+import logging
+import math
+import os
+
+import numpy as np
+from PIL import Image
+import torch
+from torch.utils import data
 import torchvision.transforms as transforms
+
+from config import cfg
+import datasets.cityscapes_labels as cityscapes_labels
 import datasets.edge_utils as edge_utils
 
 trainid_to_name = cityscapes_labels.trainId2name
@@ -23,65 +22,13 @@ num_classes = 19
 ignore_label = 255
 root = cfg.DATASET.CITYSCAPES_DIR
 
-palette = [
-    128,
-    64,
-    128,
-    244,
-    35,
-    232,
-    70,
-    70,
-    70,
-    102,
-    102,
-    156,
-    190,
-    153,
-    153,
-    153,
-    153,
-    153,
-    250,
-    170,
-    30,
-    220,
-    220,
-    0,
-    107,
-    142,
-    35,
-    152,
-    251,
-    152,
-    70,
-    130,
-    180,
-    220,
-    20,
-    60,
-    255,
-    0,
-    0,
-    0,
-    0,
-    142,
-    0,
-    0,
-    70,
-    0,
-    60,
-    100,
-    0,
-    80,
-    100,
-    0,
-    0,
-    230,
-    119,
-    11,
-    32,
-]
+# fmt: off
+palette = [128, 64, 128, 244, 35, 232, 70, 70, 70, 102, 102, 156, 190, 153, 153,
+           153, 153, 153, 250, 170, 30,
+           220, 220, 0, 107, 142, 35, 152, 251, 152, 70, 130, 180, 220, 20, 60,
+           255, 0, 0, 0, 0, 142, 0, 0, 70,
+           0, 60, 100, 0, 80, 100, 0, 0, 230, 119, 11, 32]
+# fmt: on
 zero_pad = 256 * 3 - len(palette)
 for i in range(zero_pad):
     palette.append(0)
@@ -171,10 +118,8 @@ def make_test_split(img_dir_name):
 def make_dataset(quality, mode, maxSkip=0, fine_coarse_mult=6, cv_split=0):
     """
     Assemble list of images + mask files
-
     fine -   modes: train/val/test/trainval    cv:0,1,2
     coarse - modes: train/val                  cv:na
-
     path examples:
     leftImg8bit_trainextra/leftImg8bit/train_extra/augsburg
     gtCoarse/gtCoarse/train_extra/augsburg
@@ -233,7 +178,7 @@ class CityScapes(data.Dataset):
         eval_mode=False,
         eval_scales=None,
         eval_flip=False,
-    ):
+    ) -> None:
         self.quality = quality
         self.mode = mode
         self.maxSkip = maxSkip

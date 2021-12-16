@@ -3,8 +3,12 @@
 import torch
 
 import torchvision
+
 # FIXME: only torch>1.10
-from torchvision.models.feature_extraction import create_feature_extractor, get_graph_node_names
+from torchvision.models.feature_extraction import (
+    create_feature_extractor,
+    get_graph_node_names,
+)
 
 from pytorch_memlab import MemReporter, profile, set_target_gpu
 
@@ -42,12 +46,12 @@ def get_output(gpu_id: int = 0):
     resnet = torchvision.models.resnet50()
 
     # NOTE: new way of making an extractor from backbones
-    resnet2 = create_feature_extractor(resnet, return_nodes={'layer4': 'feat'})
+    resnet2 = create_feature_extractor(resnet, return_nodes={"layer4": "feat"})
 
     wider = wider_resnet38_a2()
 
     inp = torch.randn(4, 3, 224, 224)
-    out_resnet = resnet2(inp)['feat']
+    out_resnet = resnet2(inp)["feat"]
 
     out_wider = wider(inp)
 

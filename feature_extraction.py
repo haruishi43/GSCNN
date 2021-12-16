@@ -89,7 +89,14 @@ class NodePathTracer(LeafModuleAwareTracer):
             self.current_module_qualname = old_qualname
 
     def create_proxy(
-        self, kind: str, target: fx.node.Target, args, kwargs, name=None, type_expr=None, *_
+        self,
+        kind: str,
+        target: fx.node.Target,
+        args,
+        kwargs,
+        name=None,
+        type_expr=None,
+        *_,
     ) -> fx.proxy.Proxy:
         """
         Override of `Tracer.create_proxy`. This override intercepts the recording
@@ -97,7 +104,9 @@ class NodePathTracer(LeafModuleAwareTracer):
         name in `node_to_qualname`
         """
         proxy = super().create_proxy(kind, target, args, kwargs, name, type_expr)
-        self.node_to_qualname[proxy.node] = self._get_node_qualname(self.current_module_qualname, proxy.node)
+        self.node_to_qualname[proxy.node] = self._get_node_qualname(
+            self.current_module_qualname, proxy.node
+        )
         return proxy
 
     def _get_node_qualname(self, module_qualname: str, node: fx.node.Node) -> str:
@@ -153,7 +162,9 @@ def _warn_graph_differences(train_tracer: NodePathTracer, eval_tracer: NodePathT
     train_nodes = list(train_tracer.node_to_qualname.values())
     eval_nodes = list(eval_tracer.node_to_qualname.values())
 
-    if len(train_nodes) == len(eval_nodes) and all(t == e for t, e in zip(train_nodes, eval_nodes)):
+    if len(train_nodes) == len(eval_nodes) and all(
+        t == e for t, e in zip(train_nodes, eval_nodes)
+    ):
         return
 
     suggestion_msg = (
@@ -251,7 +262,11 @@ class DualGraphModule(fx.GraphModule):
     """
 
     def __init__(
-        self, root: torch.nn.Module, train_graph: fx.Graph, eval_graph: fx.Graph, class_name: str = "GraphModule"
+        self,
+        root: torch.nn.Module,
+        train_graph: fx.Graph,
+        eval_graph: fx.Graph,
+        class_name: str = "GraphModule",
     ):
         """
         Args:
@@ -288,7 +303,10 @@ class DualGraphModule(fx.GraphModule):
             self.eval_graph._tracer_cls == self.train_graph._tracer_cls
         ), "Train mode and eval mode should use the same tracer class"
         self._tracer_cls = None
-        if self.graph._tracer_cls and "<locals>" not in self.graph._tracer_cls.__qualname__:
+        if (
+            self.graph._tracer_cls
+            and "<locals>" not in self.graph._tracer_cls.__qualname__
+        ):
             self._tracer_cls = self.graph._tracer_cls
 
     def train(self, mode=True):
@@ -445,7 +463,10 @@ def create_feature_extractor(
     # Repeat the tracing and graph rewriting for train and eval mode
     tracers = {}
     graphs = {}
-    mode_return_nodes: Dict[str, Dict[str, str]] = {"train": train_return_nodes, "eval": eval_return_nodes}
+    mode_return_nodes: Dict[str, Dict[str, str]] = {
+        "train": train_return_nodes,
+        "eval": eval_return_nodes,
+    }
     for mode in ["train", "eval"]:
         if mode == "train":
             model.train()
@@ -456,7 +477,9 @@ def create_feature_extractor(
         tracer = NodePathTracer(**tracer_kwargs)
         graph = tracer.trace(model)
 
-        name = model.__class__.__name__ if isinstance(model, nn.Module) else model.__name__
+        name = (
+            model.__class__.__name__ if isinstance(model, nn.Module) else model.__name__
+        )
         graph_module = fx.GraphModule(tracer.root, graph, name)
 
         available_nodes = list(tracer.node_to_qualname.values())
@@ -468,7 +491,9 @@ def create_feature_extractor(
         for query in mode_return_nodes[mode].keys():
             # To check if a query is available we need to check that at least
             # one of the available names starts with it up to a .
-            if not any([re.match(rf"^{query}(\.|$)", n) is not None for n in available_nodes]):
+            if not any(
+                [re.match(rf"^{query}(\.|$)", n) is not None for n in available_nodes]
+            ):
                 raise ValueError(
                     f"node: '{query}' is not present in model. Hint: use "
                     "`get_graph_node_names` to make sure the "
@@ -523,7 +548,9 @@ def create_feature_extractor(
         _warn_graph_differences(tracers["train"], tracers["eval"])
 
     # Build the final graph module
-    graph_module = DualGraphModule(model, graphs["train"], graphs["eval"], class_name=name)
+    graph_module = DualGraphModule(
+        model, graphs["train"], graphs["eval"], class_name=name
+    )
 
     # Restore original training mode
     model.train(is_training)
