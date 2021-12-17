@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
 """Testing `cityscapes-preprocess`
-
-TODO:
-- converting MATLAB codes to Python
 """
+
+import os
 
 import numpy as np
 
@@ -81,10 +80,11 @@ def main():
     edge_suffix = '_gtFine_edge.bin'  # this is the output
 
     # setup parameters
-    num_class = 19
     radius = 2
+    num_categories = len(label_mapping)  # 19
 
     # 0. setup parallel workers
+    # FIXME: threading or multiprocessing (make sure to limit threads for numpy)
 
     # 1. generate output directories
 
@@ -97,8 +97,11 @@ def main():
 
         # 3. generate and write data
         # 3.1. copy image and gt files to output directory
+        # FIXME: instead of duplicating the GTs, separate the directories
+
         # 3.2. [if not 'test']
         # 3.2.1. transform label id map to train id map and save (segmentation map)
+
         # 3.2.2. transform color map to edge map and write
 
         # 4. save list of images for the split as a txt file

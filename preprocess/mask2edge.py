@@ -10,7 +10,7 @@ import numpy as np
 
 def mask2edge(
     mask,
-    radius: int,
+    radius: int = 2,
     ignore_labels: List[int] = [2, 3],
     edge_type: str = "regular",  # choice: 'regular', 'inner', 'outer'
 ):
@@ -18,6 +18,10 @@ def mask2edge(
 
     This function takes an input segment and produces binary boundaries.
     Multi-channel input segments are supported by the function.
+
+    - `ignore_labels`
+      - 2: "rectification border"
+      - 3: "out of roi"
     """
 
     # 1. get dimensions
@@ -48,6 +52,7 @@ def mask2edge(
     num_img_px = len(X)
 
     # 5. compute gaussian weight
+    # FIXME: we could optimize the code a lot better
     edge_idx = np.zeros(num_img_px, dtype=bool)
     for x, y in zip(rx, ry):
         X_neighbor = X + x
@@ -103,24 +108,24 @@ def mask2edge(
     return edge_idx.reshape(h, w)  # returns np.ndarray dtype=bool
 
 
-def mask2edge_fast(
-    mask,
+def mask2edge_fast(  # FIXME: probably should rename this
+    cat_mask,
     candidate_edge,
     radius: int,
-    ignore_labels: List[int] = [],
+    ignore_labels: List[int] = [],  # FIXME: we don't really need ignore labels
     edge_type: str = "regular",
 ):
     """python version of `seg2edge_fast` subroutine
 
     Fast version of `seg2edge` by only considering pixels in `candidate_edge`.
 
-    - the input mask should be single class boolean numpy ndarray
+    - the input mask should be single category boolean numpy ndarray
     - what is the purpose of `ignore_labels`?
     """
 
     # 1. get dimensions
-    assert len(mask.shape) == 2, f"ERR: only accepts 2-dim masks, but got {mask.shape}"
-    h, w = mask.shape
+    assert len(cat_mask.shape) == 2, f"ERR: only accepts 2-dim masks, but got {cat_mask.shape}"
+    h, w = cat_mask.shape
 
     # 2. set the considered neighborhood
     search_radius = int(max(math.ceil(radius), 1))
@@ -137,7 +142,6 @@ def mask2edge_fast(
     rx = rx.flatten()
     ry = ry.flatten()
     candidate_edge = candidate_edge.flatten()
-    print(candidate_edge.shape)
     # candidate_edge = candidate_edge is True
     candidate_X = X[candidate_edge]
     candidate_Y = Y[candidate_edge]
@@ -166,8 +170,8 @@ def mask2edge_fast(
         Y_center = Y[valid_idx]
         X_neighbor = X_neighbor[select_idx]
         Y_neighbor = Y_neighbor[select_idx]
-        L_center = mask[Y_center, X_center]
-        L_neighbor = mask[Y_neighbor, X_neighbor]
+        L_center = cat_mask[Y_center, X_center]
+        L_neighbor = cat_mask[Y_neighbor, X_neighbor]
 
         if edge_type == "regular":
             diff_idx = np.where(L_center != L_neighbor)[0]
@@ -216,3 +220,24 @@ if __name__ == "__main__":
     )
     mask_img = Image.open(mask_path)
     mask = np.array(mask_img)
+
+    radius = 2
+    edge_type = "regular"
+
+    candidate_edges = mask2edge(
+        mask=mask,
+        radius=radius,
+        edge_type=edge_type,
+    )
+
+    car_label = 26
+    cat_mask = mask == car_label
+
+    cat_edges = mask2edge_fast(
+        cat_mask=cat_mask,
+        candidate_edge=candidate_edges,
+        radius=radius,
+        edge_type=edge_type,
+    )
+
+    # TODO: benchmark speeds and accuracy
