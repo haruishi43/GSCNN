@@ -10,7 +10,7 @@ import numpy as np
 
 def mask2edge(
     mask,
-    radius,
+    radius: int,
     ignore_labels: List[int] = [2, 3],
     edge_type: str = "regular",  # choice: 'regular', 'inner', 'outer'
 ):
@@ -100,19 +100,22 @@ def mask2edge(
         diff_gt_idx = diff_idx[use_idx]
         edge_idx[valid_idx[diff_gt_idx]] = True
 
-    return edge_idx.reshape(h, w)
+    return edge_idx.reshape(h, w)  # returns np.ndarray dtype=bool
 
 
 def mask2edge_fast(
     mask,
     candidate_edge,
-    radius,
-    ignore_label,
-    edge_type,
+    radius: int,
+    ignore_labels: List[int] = [],
+    edge_type: str = "regular",
 ):
     """python version of `seg2edge_fast` subroutine
 
     Fast version of `seg2edge` by only considering pixels in `candidate_edge`.
+
+    - the input mask should be single class boolean numpy ndarray
+    - what is the purpose of `ignore_labels`?
     """
 
     # 1. get dimensions
@@ -120,12 +123,87 @@ def mask2edge_fast(
     h, w = mask.shape
 
     # 2. set the considered neighborhood
+    search_radius = int(max(math.ceil(radius), 1))
+    _x = np.linspace(0, w - 1, w, dtype=np.int64)
+    _y = np.linspace(0, h - 1, h, dtype=np.int64)
+    _rx = np.linspace(-search_radius, search_radius, search_radius * 2 + 1, dtype=np.int64)
+    _ry = np.linspace(-search_radius, search_radius, search_radius * 2 + 1, dtype=np.int64)
+    X, Y = np.meshgrid(_x, _y)
+    rx, ry = np.meshgrid(_rx, _ry)
 
     # 3. columize everything (flatten)
+    X = X.flatten()
+    Y = Y.flatten()
+    rx = rx.flatten()
+    ry = ry.flatten()
+    candidate_edge = candidate_edge.flatten()
+    print(candidate_edge.shape)
+    # candidate_edge = candidate_edge is True
+    candidate_X = X[candidate_edge]
+    candidate_Y = Y[candidate_edge]
+    candidate_idx = np.where(candidate_edge)[0]
 
     # 4. build circular neighborhood
+    neighbor_idxs = np.sqrt(rx**2 + ry**2) <= radius
+    rx = rx[neighbor_idxs]
+    ry = ry[neighbor_idxs]
+    num_img_px = len(X)
 
     # 5. compute gaussian weight
+    edge_idx = np.zeros(num_img_px, dtype=bool)
+    for x, y in zip(rx, ry):
+        X_neighbor = candidate_X + x
+        Y_neighbor = candidate_Y + y
+        select_idx = np.where(
+            (X_neighbor >= 0)
+            & (X_neighbor < w)
+            & (Y_neighbor >= 0)
+            & (Y_neighbor < h)
+        )[0]  # NOTE: it's a tuple...
+        valid_idx = candidate_idx[select_idx]
+
+        X_center = X[valid_idx]
+        Y_center = Y[valid_idx]
+        X_neighbor = X_neighbor[select_idx]
+        Y_neighbor = Y_neighbor[select_idx]
+        L_center = mask[Y_center, X_center]
+        L_neighbor = mask[Y_neighbor, X_neighbor]
+
+        if edge_type == "regular":
+            diff_idx = np.where(L_center != L_neighbor)[0]
+        elif edge_type == "inner":
+            # TODO: understand what 'inner' does
+            diff_idx = np.where(
+                (L_center != L_neighbor)
+                & (L_center != 0)  # FIXME: what? why 0?
+                & (L_neighbor == 0)
+            )[0]
+        elif edge_type == "outer":
+            # TODO: understand what 'outer' does
+            diff_idx = np.where(
+                (L_center != L_neighbor)
+                & (L_center == 0)
+                & (L_neighbor != 0)
+            )[0]
+        else:
+            raise ValueError()
+
+        L_center_edge = L_center[diff_idx]
+        L_neighbor_edge = L_neighbor[diff_idx]
+        use_idx = np.ones(diff_idx.shape, dtype=bool)
+
+        assert L_center_edge.shape == L_neighbor_edge.shape == use_idx.shape
+
+        for label in ignore_labels:
+            ignore_idx = np.where((L_center_edge == label) | (L_neighbor_edge == label))
+            use_idx[ignore_idx] = False
+
+        assert use_idx.shape == L_center_edge.shape == L_neighbor_edge.shape
+
+        diff_gt_idx = diff_idx[use_idx]
+        edge_idx[valid_idx[diff_gt_idx]] = True
+
+    return edge_idx.reshape(h, w)  # returns np.ndarray dtype=bool
 
 
 if __name__ == "__main__":
