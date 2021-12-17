@@ -3,9 +3,11 @@
 """Testing `cityscapes-preprocess`
 """
 
+import glob
 import os
 
 import numpy as np
+from PIL import Image
 
 from datasets.cityscapes_labels import (
     labels,
@@ -14,6 +16,7 @@ from datasets.cityscapes_labels import (
     name2label,
     label2trainId,
 )
+from preprocess.mask2edge import mask2edge, mask2edge_fast
 
 # NOTE: same as trainId?
 label_mapping = {
@@ -79,6 +82,11 @@ def main():
     polygons_suffix = '_gtFine_polygons.json'
     edge_suffix = '_gtFine_edge.bin'  # this is the output
 
+    cityscapes_root = 'data/cityscapes'
+    gtFine_dir = 'gtFine'
+    img_dir = 'leftImg8bit'
+    out_dir = 'gtProc'
+
     # setup parameters
     radius = 2
     num_categories = len(label_mapping)  # 19
@@ -89,24 +97,78 @@ def main():
     # 1. generate output directories
 
     # 2. generate preprocessed dataset
-    splits = ['train', 'val', 'test']
+    # splits = ['train', 'val', 'test']  # FIXME: test split doesn't have GT (dummy anno)
+    splits = ['train', 'val']
     for split in splits:
-        # for each city
 
-        # for each image
+        img_split_path = os.path.join(cityscapes_root, img_dir, split)
+        gtFine_split_path = os.path.join(cityscapes_root, gtFine_dir, split)
+        # minor checks
+        assert os.path.exists(img_split_path)
+        assert os.path.exists(gtFine_split_path)
 
-        # 3. generate and write data
-        # 3.1. copy image and gt files to output directory
-        # FIXME: instead of duplicating the GTs, separate the directories
+        cities = os.listdir(img_split_path)
+        _cities = os.listdir(gtFine_split_path)
+        # minor checks
+        assert len(cities) == len(_cities)
+        assert len(set(cities) - set(_cities)) == 0
 
-        # 3.2. [if not 'test']
-        # 3.2.1. transform label id map to train id map and save (segmentation map)
+        for city in cities:
+            img_city_path = os.path.join(img_split_path, city)
+            gtFine_city_path = os.path.join(gtFine_split_path, city)
+            # minor checks
+            assert os.path.exists(img_city_path)
+            assert os.path.exists(gtFine_city_path)
 
-        # 3.2.2. transform color map to edge map and write
+            save_root = os.path.join(cityscapes_root, out_dir, split, city)
+            # TODO: make dirs if it doesn't exist
 
-        # 4. save list of images for the split as a txt file
+            img_paths = glob.glob(os.path.join(img_city_path, "*.png"))
+            assert len(img_paths) > 0
 
-        ...
+            for _img_path in img_paths:
+                # strip the prefix (to save as split txt file)
+                img_path = os.path.relpath(_img_path, cityscapes_root)
+                data_name = os.path.basename(img_path)[:-len(img_suffix)]
+
+                # 3. generate and write data
+                # 3.1. copy image and gt files to output directory
+                # FIXME: instead of duplicating the GTs, separate the directories
+
+                # 3.2. [if not 'test']
+                # 3.2.1. transform label id map to train id map and save (segmentation map)
+                labelId_path = os.path.join(gtFine_city_path, f"{data_name}{labelIds_suffix}")
+                assert os.path.exists(labelId_path)
+                labelId_map = np.array(Image.open(labelId_path))
+
+                # save trainIds
+                trainId_map = convert_label2trainId(labelId_map)
+                trainId_img = Image.fromarray(trainId_map, 'L')
+                trainId_img.save(os.path.join(save_root, f"{data_name}{trainIds_suffix}"))
+
+                # 3.2.2. transform color map to edge map and write
+                edge_map = mask2edge(labelId_map, radius=radius, ignore_labels=[2, 3], edge_type="regular")
+                h, w = labelId_map.shape
+                cat_edge_map = np.zeros((h, w), dtype=np.uint32)
+                cat_edge_map = cat_edge_map.flatten()  # FIXME: is this necessary?
+                for cat_idx in range(0, num_categories):
+                    mask_map = trainId_map == cat_idx
+                    if (mask_map is True).any():  # FIXME: does this work?
+                        edge_idx = mask2edge_fast(
+                            cat_mask=mask_map,
+                            candidate_edge=edge_map,
+                            radius=radius,
+                            edge_type="regular",
+                        )
+                        edge_idx = edge_idx.flatten()
+                        # bit manipulation
+                        cat_edge_map[edge_idx] = cat_edge_map[edge_idx] + 2**(cat_idx)
+
+                cat_edge_map = cat_edge_map.reshape(h, w)
+
+                # 4. save list of images for the split as a txt file
+                # hdf5?
+                # how to write binary file?
 
 
 if __name__ == "__main__":
@@ -119,3 +181,5 @@ if __name__ == "__main__":
 
     # print(new_label2trainId)
     # print(new_label2trainId == label_mapping)
+
+    main()
