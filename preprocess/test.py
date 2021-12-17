@@ -6,10 +6,6 @@ TODO:
 - converting MATLAB codes to Python
 """
 
-import math
-
-from typing import List
-
 import numpy as np
 
 from datasets.cityscapes_labels import (
@@ -65,61 +61,6 @@ def convert_label2trainId(label_img: np.ndarray) -> np.ndarray:
         trainId_img[idx] == trainId
 
     return trainId_img
-
-
-def seg2edge(
-    seg,
-    radius,
-    ignore_label: List[int] = [2, 3],
-    edge_type: str = "regular",  # choice: 'regular', 'inner', 'outer'
-):
-    """python version of `seg2edge` subroutine
-
-    This function takes an input segment and produces binary boundaries.
-    Multi-channel input segments are supported by the function.
-    """
-
-    # 1. get dimensions
-    h, w, c = seg.shape
-
-    # 2. set the considered neighborhood
-    search_radius = int(max(math.ceil(radius), 1))
-    _x = np.linspace(0, w)
-    _y = np.linspace(0, h)
-    _rx = np.linspace(-search_radius, search_radius)
-    _ry = np.linspace(-search_radius, search_radius)
-    X, Y = np.meshgrid(_x, _y)
-    x, y = np.meshgrid(_rx, _ry)
-
-    # 3. columize everything (flatten)
-
-    # 4. build circular neighborhood
-
-    # 5. compute gaussian weight
-
-
-def seg2edge_fast(
-    seg,
-    candidate_edge,
-    radius,
-    ignore_label,
-    edge_type,
-):
-    """python version of `seg2edge_fast` subroutine
-
-    Fast version of `seg2edge` by only considering pixels in `candidate_edge`.
-    """
-
-    # 1. get dimensions
-    h, w, c = seg.shape
-
-    # 2. set the considered neighborhood
-
-    # 3. columize everything (flatten)
-
-    # 4. build circular neighborhood
-
-    # 5. compute gaussian weight
 
 
 def main():
