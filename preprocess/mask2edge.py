@@ -68,8 +68,8 @@ def mask2edge(
         Y_center = Y[valid_idx]
         X_neighbor = X_neighbor[valid_idx]
         Y_neighbor = Y_neighbor[valid_idx]
-        L_center = mask[Y_center, X_center]
-        L_neighbor = mask[Y_neighbor, X_neighbor]
+        L_center = mask[Y_center, X_center]  # values are categories
+        L_neighbor = mask[Y_neighbor, X_neighbor]  # values are categories
 
         if edge_type == "regular":
             diff_idx = np.where(L_center != L_neighbor)[0]
@@ -77,7 +77,7 @@ def mask2edge(
             # TODO: understand what 'inner' does
             diff_idx = np.where(
                 (L_center != L_neighbor)
-                & (L_center != 0)  # FIXME: what? why 0?
+                & (L_center != 0)  # FIXME: what? why 0? bool?
                 & (L_neighbor == 0)
             )[0]
         elif edge_type == "outer":

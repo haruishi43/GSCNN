@@ -5,6 +5,7 @@
 
 import glob
 import os
+import sys
 
 import numpy as np
 from PIL import Image
@@ -98,8 +99,10 @@ def main():
 
     # 2. generate preprocessed dataset
     # splits = ['train', 'val', 'test']  # FIXME: test split doesn't have GT (dummy anno)
-    splits = ['train', 'val']
+    splits = ['train', 'val']  # FIXME: should add for test split?
     for split in splits:
+
+        split_files = []
 
         img_split_path = os.path.join(cityscapes_root, img_dir, split)
         gtFine_split_path = os.path.join(cityscapes_root, gtFine_dir, split)
@@ -150,7 +153,14 @@ def main():
                 edge_map = mask2edge(labelId_map, radius=radius, ignore_labels=[2, 3], edge_type="regular")
                 h, w = labelId_map.shape
                 cat_edge_map = np.zeros((h, w), dtype=np.uint32)
+                cat_edge_b = np.zeros((h, w), dtype=np.uint8)
+                cat_edge_g = np.zeros((h, w), dtype=np.uint8)
+                cat_edge_r = np.zeros((h, w), dtype=np.uint8)
+                cat_edge_png = np.zeros((h, w, 3), dtype=np.uint8)
                 cat_edge_map = cat_edge_map.flatten()  # FIXME: is this necessary?
+                cat_edge_b = cat_edge_b.flatten()
+                cat_edge_g = cat_edge_g.flatten()
+                cat_edge_r = cat_edge_r.flatten()
                 for cat_idx in range(0, num_categories):
                     mask_map = trainId_map == cat_idx
                     if (mask_map is True).any():  # FIXME: does this work?
@@ -163,12 +173,41 @@ def main():
                         edge_idx = edge_idx.flatten()
                         # bit manipulation
                         cat_edge_map[edge_idx] = cat_edge_map[edge_idx] + 2**(cat_idx)
+                        # save as RGB image? up to 24 categories
+                        if cat_idx >= 0 and cat_idx < 8:
+                            cat_edge_b[edge_idx] = cat_edge_b[edge_idx] + 2**(cat_idx)
+                        elif cat_idx >= 8 and cat_idx < 16:
+                            cat_edge_g[edge_idx] = cat_edge_g[edge_idx] + 2**(cat_idx - 8)
+                        elif cat_idx >= 16 and cat_idx < 24:
+                            cat_edge_r[edge_idx] = cat_edge_r[edge_idx] + 2**(cat_idx - 16)
+                        else:
+                            raise ValueError()
 
-                cat_edge_map = cat_edge_map.reshape(h, w)
+                cat_edge_b = cat_edge_b.reshape(h, w)
+                cat_edge_g = cat_edge_g.reshape(h, w)
+                cat_edge_r = cat_edge_r.reshape(h, w)
+                cat_edge_png[:, :, 0] = cat_edge_r
+                cat_edge_png[:, :, 1] = cat_edge_g
+                cat_edge_png[:, :, 2] = cat_edge_b
+                # save as png
+                cat_edge_img = Image.fromarray(cat_edge_png)
+                cat_edge_img.save("something.png")
 
-                # 4. save list of images for the split as a txt file
-                # hdf5?
-                # how to write binary file?
+                # for now the method is to save it as a binary file using numpy
+                cat_edge_map = cat_edge_map.reshape(h, w)  # FIXME: using `tofile` removes the shape anyway
+                cat_edge_map.tofile('something.bin', dtype=np.uint32)
+
+        # 4. save list of images for the split as a txt file
+
+
+def loading_edge_bin(bin_path, h, w, num_categories):
+    b = np.fromfile(bin_path, dtype=np.uint32)
+    if b.dtype.byteorder == '>' or (b.dtype.byteorder == '=' and sys.byteorder == 'big'):
+        b = b[:, ::-1]
+
+    b = b.reshape(h, w)[:, :, None]
+    ub = np.unpackbits(b.view(np.uint8), axis=2, count=num_categories, bitorder='little')
+    return ub
 
 
 if __name__ == "__main__":
