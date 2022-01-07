@@ -140,4 +140,5 @@ dmypy.json
 cython_debug/
 
 # other development stuff
+.vscode
 .DS_Store
