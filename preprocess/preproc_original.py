@@ -126,6 +126,9 @@ def preproc_original():
                     ignore_labels=[2, 3],
                     edge_type="regular",
                 )
+
+                # TODO: save edge map
+
                 h, w = labelId_map.shape
 
                 if encode_type == "rgb":
