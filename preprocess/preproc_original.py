@@ -203,8 +203,10 @@ def preproc_original():
 
         # 4. save list of images for the split as a txt file
         split_path = os.path.join(cityscapes_root, split_dir, f"{split}.json")
+        if not os.path.exists(os.path.join(cityscapes_root, split_dir)):
+            os.makedirs(os.path.join(cityscapes_root, split_dir), exist_ok=True)
         with open(split_path, 'w') as f:
-            json.dump(split_files, f)
+            json.dump(split_files, f, indent=2)
 
 
 if __name__ == "__main__":
