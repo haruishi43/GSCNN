@@ -3,11 +3,9 @@
 import glob
 import json
 import os
-from os import PathLike
 
 import numpy as np
 from PIL import Image
-from tqdm import tqdm
 
 from preprocess.label2trainId import convert_label2trainId, label_mapping
 from preprocess.mask2edge import mask2edge, mask2edge_fast
@@ -51,7 +49,8 @@ def preproc_original():
         raise ValueError()
 
     # 0. setup parallel workers
-    # FIXME: threading or multiprocessing (make sure to limit threads for numpy)
+    # TODO: threading or multiprocessing (make sure to limit threads for numpy)
+    # currently it's pretty slow
 
     # 1. generate output directories
     assert os.path.exists(cityscapes_root), f"ERR: {cityscapes_root} not found"
@@ -85,7 +84,6 @@ def preproc_original():
             assert os.path.exists(gtFine_city_path)
 
             save_root = os.path.join(cityscapes_root, out_dir, split, city)
-            # TODO: make dirs if it doesn't exist
             if not os.path.exists(save_root):
                 print(f"Making directory: {save_root}")
                 os.makedirs(save_root, exist_ok=True)
