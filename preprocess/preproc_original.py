@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import glob
+import json
 import os
 from os import PathLike
 
@@ -33,11 +34,21 @@ def preproc_original():
     img_dir = 'leftImg8bit'
     gtFine_dir = 'gtFine'
     out_dir = 'gtProc'
+    split_dir = 'edge_splits'
 
     # setup parameters
     radius = 2
     num_categories = len(label_mapping)  # 19
     encode_type = "tif"  # ('rgb', 'bin', 'tif')
+
+    if encode_type == "rgb":
+        edge_suffix = edge_png_suffix
+    elif encode_type == "bin":
+        edge_suffix = edge_bin_suffix
+    elif encode_type == "tif":
+        edge_suffix = edge_tif_suffix
+    else:
+        raise ValueError()
 
     # 0. setup parallel workers
     # FIXME: threading or multiprocessing (make sure to limit threads for numpy)
@@ -86,6 +97,14 @@ def preproc_original():
                 # strip the prefix (to save as split txt file)
                 img_path = os.path.relpath(_img_path, cityscapes_root)
                 data_name = os.path.basename(img_path)[:-len(img_suffix)]
+
+                split_info = {
+                    'img': os.path.join(img_dir, split, city, f"{data_name}{img_suffix}"),
+                    'gtFine_labelIds': os.path.join(gtFine_dir, split, city, f"{data_name}{labelIds_suffix}"),
+                    'gtProc_trainIds': os.path.join(out_dir, split, city, f"{data_name}{trainIds_suffix}"),
+                    'gtProc_edge': os.path.join(out_dir, split, city, f"{data_name}{edge_suffix}")
+                }
+                split_files.append(split_info)
 
                 # 3. generate and write data
                 # 3.1. copy image and gt files to output directory
@@ -183,6 +202,9 @@ def preproc_original():
                         raise ValueError()
 
         # 4. save list of images for the split as a txt file
+        split_path = os.path.join(cityscapes_root, split_dir, f"{split}.json")
+        with open(split_path, 'w') as f:
+            json.dump(split_files, f)
 
 
 if __name__ == "__main__":

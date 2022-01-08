@@ -3,6 +3,7 @@
 """New Preprocessing Script for Cityscapes Dataset
 """
 
+
 def preprocess_cityscapes():
     ...
 
