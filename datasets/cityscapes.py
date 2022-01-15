@@ -58,14 +58,14 @@ def add_items(
             items.append(item)
 
 
-def make_cv_splits(img_dir_name):
+def make_cv_splits():
     """
     Create splits of train/val data.
     A split is a lists of cities.
     split0 is aligned with the default Cityscapes train/val.
     """
-    trn_path = os.path.join(root, img_dir_name, "leftImg8bit", "train")
-    val_path = os.path.join(root, img_dir_name, "leftImg8bit", "val")
+    trn_path = os.path.join(root, "leftImg8bit", "train")
+    val_path = os.path.join(root, "leftImg8bit", "val")
 
     trn_cities = ["train/" + c for c in os.listdir(trn_path)]
     val_cities = ["val/" + c for c in os.listdir(val_path)]
@@ -129,18 +129,17 @@ def make_dataset(quality, mode, maxSkip=0, fine_coarse_mult=6, cv_split=0):
 
     if quality == "fine":
         assert mode in ["train", "val", "test", "trainval"]
-        img_dir_name = "leftImg8bit_trainvaltest"
-        img_path = os.path.join(root, img_dir_name, "leftImg8bit")
-        mask_path = os.path.join(root, "gtFine_trainvaltest", "gtFine")
+        img_path = os.path.join(root, "leftImg8bit")
+        mask_path = os.path.join(root, "gtFine")
         mask_postfix = "_gtFine_labelIds.png"
-        cv_splits = make_cv_splits(img_dir_name)
+        cv_splits = make_cv_splits()
         if mode == "trainval":
             modes = ["train", "val"]
         else:
             modes = [mode]
         for mode in modes:
             if mode == "test":
-                cv_splits = make_test_split(img_dir_name)
+                cv_splits = make_test_split()
                 add_items(items, cv_splits, img_path, mask_path, mask_postfix)
             else:
                 logging.info(
