@@ -15,9 +15,9 @@ import numpy as np
 
 from config import cfg, assert_and_infer_cfg
 import datasets
-import loss
+import sseg.loss as loss
 import network
-import optimizer
+import sseg.optimizer as optimizer
 
 from utils.misc import AverageMeter, prep_experiment, evaluate_eval, fast_hist
 from utils.f_boundary import eval_mask_boundary
