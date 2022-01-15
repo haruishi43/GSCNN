@@ -167,7 +167,7 @@ class ImageBasedCrossEntropyLoss2d(nn.Module):
     ):
         # FIXME: the codebase is old
         # https://github.com/NVIDIA/semantic-segmentation/blob/main/loss/utils.py
-        super(ImageBasedCrossEntropyLoss2d, self).f__init__()
+        super(ImageBasedCrossEntropyLoss2d, self).__init__()
         logging.info("Using Per Image based weighted loss")
         self.num_classes = classes
         self.nll_loss = nn.NLLLoss2d(weight, size_average, ignore_index)
