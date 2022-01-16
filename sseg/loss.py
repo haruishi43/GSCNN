@@ -170,6 +170,8 @@ class ImageBasedCrossEntropyLoss2d(nn.Module):
         super(ImageBasedCrossEntropyLoss2d, self).__init__()
         logging.info("Using Per Image based weighted loss")
         self.num_classes = classes
+
+        # FIXME: NLLLoss2d has been deprecated use NLLLoss instead
         self.nll_loss = nn.NLLLoss2d(weight, size_average, ignore_index)
         self.norm = norm
         self.upper_bound = upper_bound
@@ -210,6 +212,8 @@ class CrossEntropyLoss2d(nn.Module):
         # CrossEntropyLoss implicitly adds a softmax that normalizes the output layer
         super(CrossEntropyLoss2d, self).__init__()
         logging.info("Using Cross Entropy Loss")
+
+        # FIXME: NLLLoss2d has been deprecated use NLLLoss instead
         self.nll_loss = nn.NLLLoss2d(weight, size_average, ignore_index)
 
     def forward(self, inputs, targets):

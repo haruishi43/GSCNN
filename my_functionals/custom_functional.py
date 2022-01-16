@@ -195,7 +195,7 @@ def compute_normal_2(E, cuda=False):
     return O, (Oyy, Oxx)
 
 
-def compute_grad_mag(E, cuda=False):
+def compute_grad_mag(E, cuda=False, eps=1e-6):
 
     # magnitude?
 
@@ -206,8 +206,8 @@ def compute_grad_mag(E, cuda=False):
     # mag = torch.sqrt(torch.mul(Ox, Ox) + torch.mul(Oy, Oy) + 1e-6)
     # mag = mag / mag.max()  # divide by zero error
 
-    mag = torch.clamp(torch.mul(Ox, Ox) + torch.mul(Oy, Oy), min=1e-6)
-    mag = torch.clamp(torch.sqrt(torch.abs(mag)), min=1e-6, max=1.0)
+    mag = torch.sqrt(torch.mul(Ox, Ox) + torch.mul(Oy, Oy) + eps)
     mag = torch.div(mag, mag.max())
+    assert torch.sum(torch.isinf(mag)) == 0, f"{mag}"
 
     return mag
