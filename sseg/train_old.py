@@ -22,6 +22,8 @@ import sseg.optimizer as optimizer
 from utils.misc import AverageMeter, prep_experiment, evaluate_eval, fast_hist
 from utils.f_boundary import eval_mask_boundary
 
+torch.autograd.set_detect_anomaly(True)
+
 
 # Argument Parser
 parser = argparse.ArgumentParser(description="GSCNN")
