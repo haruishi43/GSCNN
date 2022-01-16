@@ -146,10 +146,13 @@ class JointEdgeSegLoss(nn.Module):
 
         losses["seg_loss"] = self.seg_weight * self.seg_loss(segin, segmask)
         losses["edge_loss"] = self.edge_weight * 20 * self.bce2d(edgein, edgemask)
+
+        # dual task regularizer (dual loss is left, att loss is right)
+        # FIXME: segin is ALL nan
+        losses["dual_loss"] = self.dual_weight * self.dual_task(segin, segmask)
         losses["att_loss"] = self.att_weight * self.edge_attention(
             segin, segmask, edgein
         )
-        losses["dual_loss"] = self.dual_weight * self.dual_task(segin, segmask)
 
         return losses
 

@@ -57,9 +57,15 @@ def gradient_central_diff(input, cuda):
             kernel_t = kernel_t.cuda()
     n, c, h, w = input.shape
 
-    x = conv2d_same(input, kernel_t.unsqueeze(0).unsqueeze(0).repeat([c, 1, 1, 1]), c)
+    x = conv2d_same(
+        input,
+        kernel_t.unsqueeze(0).unsqueeze(0).repeat([c, 1, 1, 1]),
+        c,
+    )
     y = conv2d_same(
-        input, kernel_t.t().unsqueeze(0).unsqueeze(0).repeat([c, 1, 1, 1]), c
+        input,
+        kernel_t.t().unsqueeze(0).unsqueeze(0).repeat([c, 1, 1, 1]),
+        c,
     )
     return x, y
 
@@ -197,17 +203,30 @@ def compute_normal_2(E, cuda=False):
 
 def compute_grad_mag(E, cuda=False, eps=1e-6):
 
+    # FIXME: what is `mag`?
     # magnitude?
 
-    # FIXME: what is `mag`?
+    if torch.sum(torch.isnan(E)) != 0:
+        print("nans found here")
+        import ipdb
 
+        ipdb.set_trace()
+
+    # FIXME: input of convTri is sometimes NaN
     E_ = convTri(E, 4, cuda)
     Ox, Oy = numerical_gradients_2d(E_, cuda)
     # mag = torch.sqrt(torch.mul(Ox, Ox) + torch.mul(Oy, Oy) + 1e-6)
     # mag = mag / mag.max()  # divide by zero error
 
     mag = torch.sqrt(torch.mul(Ox, Ox) + torch.mul(Oy, Oy) + eps)
-    mag = torch.div(mag, mag.max())
+    mag = torch.div(mag, mag.max() + eps)
+
+    if torch.sum(torch.isnan(mag)) != 0:
+        print("nans found here")
+        import ipdb
+
+        ipdb.set_trace()
+
     assert torch.sum(torch.isinf(mag)) == 0, f"{mag}"
 
     return mag

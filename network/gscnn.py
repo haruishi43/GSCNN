@@ -205,9 +205,8 @@ class GSCNN(nn.Module):
         self.num_classes = num_classes
 
         wide_resnet = wider_resnet38_a2(classes=1000, dilation=True)
-        wide_resnet = torch.nn.DataParallel(wide_resnet)
-
-        wide_resnet = wide_resnet.module
+        # wide_resnet = torch.nn.DataParallel(wide_resnet)
+        # wide_resnet = wide_resnet.module
         self.mod1 = wide_resnet.mod1
         self.mod2 = wide_resnet.mod2
         self.mod3 = wide_resnet.mod3
@@ -315,25 +314,29 @@ class GSCNN(nn.Module):
         cs = self.gate3(cs, s7)
         cs = self.fuse(cs)
         cs = F.interpolate(cs, x_size[2:], mode="bilinear", align_corners=True)
-        edge_out = self.sigmoid(
-            cs
-        )  # FIXME: https://github.com/nv-tlabs/GSCNN/issues/62
+        # FIXME: https://github.com/nv-tlabs/GSCNN/issues/62
+        # loss function already has sigmoid
+        edge_out = self.sigmoid(cs)
         cat = torch.cat((edge_out, canny), dim=1)
         acts = self.cw(cat)
         acts = self.sigmoid(acts)
 
         # aspp
         x = self.aspp(m7, acts)
+        # FIXME: some values of x is NaN
         dec0_up = self.bot_aspp(x)
 
         dec0_fine = self.bot_fine(m2)
         dec0_up = self.interpolate(
             dec0_up, m2.size()[2:], mode="bilinear", align_corners=True
         )
+
+        # FIXME: dec0_up is ALL NaN
         dec0 = [dec0_fine, dec0_up]
         dec0 = torch.cat(dec0, 1)
 
         dec1 = self.final_seg(dec0)
+        # FIXME: dec1 is ALL NaN
         seg_out = self.interpolate(dec1, x_size[2:], mode="bilinear")
 
         if self.training:
