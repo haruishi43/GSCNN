@@ -201,7 +201,16 @@ def compute_grad_mag(E, cuda=False):
 
     E_ = convTri(E, 4, cuda)
     Ox, Oy = numerical_gradients_2d(E_, cuda)
-    mag = torch.sqrt(torch.mul(Ox, Ox) + torch.mul(Oy, Oy) + 1e-6)
-    mag = mag / mag.max()
+    # mag = torch.sqrt(torch.mul(Ox, Ox) + torch.mul(Oy, Oy) + 1e-6)
+    # mag = mag / mag.max()  # divide by zero error
+
+    mag = torch.clamp(
+        torch.sqrt(
+            torch.mul(Ox, Ox) + torch.mul(Oy, Oy),
+        ),
+        min=1e-6,
+    )
+
+    mag = torch.div(torch.abs(mag), torch.abs(mag.max()))
 
     return mag
