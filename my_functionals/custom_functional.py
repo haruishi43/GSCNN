@@ -197,6 +197,8 @@ def compute_normal_2(E, cuda=False):
 
 def compute_grad_mag(E, cuda=False):
 
+    # magnitude?
+
     # FIXME: what is `mag`?
 
     E_ = convTri(E, 4, cuda)
@@ -206,6 +208,6 @@ def compute_grad_mag(E, cuda=False):
 
     mag = torch.clamp(torch.mul(Ox, Ox) + torch.mul(Oy, Oy), min=1e-6)
     mag = torch.clamp(torch.sqrt(torch.abs(mag)), min=1e-6)
-    mag = torch.clamp(torch.div(mag, mag.max()), min=1e-6)
+    mag = torch.div(mag, torch.clamp(mag.max(), min=1e-6))
 
     return mag
