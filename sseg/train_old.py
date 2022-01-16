@@ -138,7 +138,7 @@ parser.add_argument(
     "--dump_augmentation_images",
     action="store_true",
     default=False,
-    help="Synchronized BN",
+    help="",
 )
 parser.add_argument(
     "--test_mode",

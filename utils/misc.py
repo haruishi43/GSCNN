@@ -348,6 +348,8 @@ def print_evaluate_results(hist, iu, writer=None, epoch=0, dataset=None):
 
     logging.info("IoU:")
     logging.info("label_id      label    iU    Precision Recall TP     FP    FN")
+
+    # FIXME: the results have NaN and inf
     for idx, i in enumerate(iu):
         idx_string = "{:2d}".format(idx)
         class_name = "{:>13}".format(id2cat[idx]) if idx in id2cat else ""
