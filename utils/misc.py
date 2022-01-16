@@ -56,7 +56,9 @@ def make_exp_name(args, parser):
             exp_name += "-{}_{}".format(str(argname), arg_str)
     # clean special chars out
     exp_name = re.sub(r"[^A-Za-z0-9_\-]+", "", exp_name)
-    exp_name = "testing"
+
+    # exp_name = "testing"  # FIXME: override!!
+
     return exp_name
 
 
