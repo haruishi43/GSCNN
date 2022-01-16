@@ -206,6 +206,6 @@ def compute_grad_mag(E, cuda=False):
 
     mag = torch.clamp(torch.mul(Ox, Ox) + torch.mul(Oy, Oy), min=1e-6)
     mag = torch.clamp(torch.sqrt(torch.abs(mag)), min=1e-6)
-    mag = torch.div(mag, mag.max())
+    mag = torch.clamp(torch.div(mag, mag.max()), min=1e-6)
 
     return mag
