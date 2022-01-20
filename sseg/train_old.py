@@ -86,7 +86,7 @@ parser.add_argument(
     default="resnet101",
     help="trunk model, can be: resnet101 (default), resnet50",
 )
-parser.add_argument("--max_epoch", type=int, default=175)
+parser.add_argument("--max_epoch", type=int, default=250)  # 175
 parser.add_argument("--start_epoch", type=int, default=0)
 parser.add_argument(
     "--color_aug", type=float, default=0.25, help="level of color augmentation"

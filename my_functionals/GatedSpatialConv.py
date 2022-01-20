@@ -214,6 +214,8 @@ class HighFrequencyGatedSpatialConv2d(_ConvNd):
         """
         n, c, h, w = input_features.size()
         smooth_features = self.gaussian_filter(input_features)
+
+        # NOTE: Difference of Gaussian (DoG)?
         dog_features = input_features - smooth_features
         dog_features = self.cw(
             torch.cat(
