@@ -83,7 +83,9 @@ class GatedSpatialConv2d(_ConvNd):
             )
         )
 
+        # residual connection
         input_features = input_features * (alphas + 1)
+
         return F.conv2d(
             input_features,
             self.weight,
@@ -128,6 +130,8 @@ class HighFrequencyGatedSpatialConv2d(_ConvNd):
         :param groups:
         :param bias:
         """
+
+        # NOTE: this module seems interesting, but it's not used
 
         kernel_size = _pair(kernel_size)
         stride = _pair(stride)

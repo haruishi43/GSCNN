@@ -4,9 +4,22 @@ Based on based on https://github.com/NVIDIA/semantic-segmentation.
 
 # Setup
 
+Install `encoding`:
 ```bash
-git clone https://github.com/nv-tlabs/GSCNN
-cd GSCNN
+git clone https://github.com/zhanghang1989/PyTorch-Encoding && cd PyTorch-Encoding
+python setup.py install
+cd ..
+```
+
+Install `mmcv-full`:
+```bash
+pip install mmcv-full
+```
+
+Setup GSCNN:
+```bash
+git clone https://github.com/nv-tlabs/GSCNN && cd GSCNN
+pip intall -r requirements.txt
 ```
 
 ## Acceleration

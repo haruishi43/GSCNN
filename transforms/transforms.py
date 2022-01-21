@@ -128,7 +128,11 @@ class FlipChannels(object):
 class RandomGaussianBlur(object):
     def __call__(self, img):
         sigma = 0.15 + random.random() * 1.15
-        blurred_img = gaussian(np.array(img), sigma=sigma, multichannel=True)
+        blurred_img = gaussian(
+            np.array(img),
+            sigma=sigma,
+            channel_axis=-1,  # multichannel=True,
+        )
         blurred_img *= 255
         return Image.fromarray(blurred_img.astype(np.uint8))
 
@@ -137,7 +141,9 @@ class RandomBilateralBlur(object):
     def __call__(self, img):
         sigma = random.uniform(0.05, 0.75)
         blurred_img = denoise_bilateral(
-            np.array(img), sigma_spatial=sigma, multichannel=True
+            np.array(img),
+            sigma_spatial=sigma,
+            channel_axis=-1,  # multichannel=True,
         )
         blurred_img *= 255
         return Image.fromarray(blurred_img.astype(np.uint8))
