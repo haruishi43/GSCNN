@@ -35,6 +35,15 @@ Download the pretrained model from the [Google Drive Folder](https://drive.googl
 Download (if needed) the inferred images from the [Google Drive Folder](https://drive.google.com/file/d/105WYnpSagdlf5-ZlSKWkRVeq-MyKLYOV/view)
 
 
+# Training
+
+(Old) Code:
+
+```bash
+# 2x RTX 3090
+CUDA_VISIBLE_DEVICES=0,1, python sseg/train_old.py --lr 0.005 --bs_mult 3 --bs_mult 2
+```
+
 # Evaluation (Cityscapes)
 
 The code takes around 7 hours
