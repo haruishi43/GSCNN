@@ -7,21 +7,22 @@ from torch.utils import data
 import torchvision.transforms as transform
 from tqdm import tqdm
 
-from encoding.nn import BatchNorm2d
+from encoding.nn import SyncBatchNorm
 from encoding.parallel import DataParallelModel, DataParallelCriterion
+from encoding import utils
 
 from boundary.losses import EdgeDetectionReweightedLosses
 from boundary.datasets import get_edge_dataset
 from boundary.models import get_edge_model
 from boundary.option import Options
-from boundary import utils
+from boundary.utils import create_logger
 
 
 class Trainer:
     def __init__(self, args):
         self.args = args
         args.log_name = str(args.checkname)
-        self.logger = utils.create_logger(args.log_root, args.log_name)
+        self.logger = create_logger(args.log_root, args.log_name)
         self.logger.info(args)
 
         # data transforms
@@ -77,7 +78,7 @@ class Trainer:
             args.model,
             dataset=args.dataset,
             backbone=args.backbone,
-            norm_layer=BatchNorm2d,
+            norm_layer=SyncBatchNorm,
             crop_size=args.crop_size,
         )
         self.logger.info(model)
@@ -112,12 +113,13 @@ class Trainer:
         )
         self.criterion = EdgeDetectionReweightedLosses()
 
-        self.model, self.optimizer = model, optimizer
+        model, self.optimizer = model, optimizer
 
         # using cuda
-        if args.cuda:
-            self.model = DataParallelModel(self.model).cuda()
-            self.criterion = DataParallelCriterion(self.criterion).cuda()
+        # if args.cuda:
+        #     self.model = DataParallelModel(self.model).cuda()
+        #     self.criterion = DataParallelCriterion(self.criterion).cuda()
+        self.model = torch.nn.DataParallel(model.cuda())
 
         # finetune from a trained model
         if args.ft:
@@ -159,8 +161,9 @@ class Trainer:
             args.lr,
             args.epochs,
             len(self.trainloader),
-            logger=self.logger,
+            # logger=self.logger,
             lr_step=args.lr_step,
+            quiet=True,
         )
 
     def training(self, epoch):
@@ -171,10 +174,13 @@ class Trainer:
         train_loss_all = 0.0
 
         for i, (image, target) in enumerate(tbar):
-            self.scheduler(self.optimizer, i, epoch)
+            self.scheduler(self.optimizer, i, epoch, 0.0)
             self.optimizer.zero_grad()
 
-            outputs = self.model(image.float())
+            image = image.float().cuda()
+            target = target.cuda()
+
+            outputs = self.model(image)
 
             loss = self.criterion(outputs, target)
             loss.backward()

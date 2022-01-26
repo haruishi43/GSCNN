@@ -61,8 +61,8 @@ class EdgeDetectionReweightedLosses(WeightedCrossEntropyWithLogits):
         self.side5_weight = side5_weight
         self.fuse_weight = fuse_weight
 
-    def forward(self, *inputs):
-        side5, fuse, target = tuple(inputs)
+    def forward(self, pred, target):
+        side5, fuse = tuple(pred)
 
         loss_side5 = super(EdgeDetectionReweightedLosses, self).forward(side5, target)
         loss_fuse = super(EdgeDetectionReweightedLosses, self).forward(fuse, target)
