@@ -11,11 +11,6 @@ python setup.py install
 cd ..
 ```
 
-Install `mmcv-full`:
-```bash
-pip install mmcv-full
-```
-
 Setup GSCNN:
 ```bash
 git clone https://github.com/nv-tlabs/GSCNN && cd GSCNN
