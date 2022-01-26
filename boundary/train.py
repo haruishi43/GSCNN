@@ -197,8 +197,6 @@ class Trainer:
                 )
                 train_loss = 0.0
 
-            break
-
         self.logger.info(
             "-> Epoch [%d], Train epoch loss: %.3f"
             % (epoch + 1, train_loss_all / (i + 1))
