@@ -1,5 +1,5 @@
 dataset = dict(
-    name='cityscapes',
+    name="cityscapes",
     cross_validation_split=0,
 )
 loss = dict(

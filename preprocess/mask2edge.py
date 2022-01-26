@@ -33,8 +33,12 @@ def mask2edge(
     search_radius = int(max(math.ceil(radius), 1))
     _x = np.linspace(0, w - 1, w, dtype=np.int64)
     _y = np.linspace(0, h - 1, h, dtype=np.int64)
-    _rx = np.linspace(-search_radius, search_radius, search_radius * 2 + 1, dtype=np.int64)
-    _ry = np.linspace(-search_radius, search_radius, search_radius * 2 + 1, dtype=np.int64)
+    _rx = np.linspace(
+        -search_radius, search_radius, search_radius * 2 + 1, dtype=np.int64
+    )
+    _ry = np.linspace(
+        -search_radius, search_radius, search_radius * 2 + 1, dtype=np.int64
+    )
     X, Y = np.meshgrid(_x, _y)
     rx, ry = np.meshgrid(_rx, _ry)
 
@@ -46,7 +50,7 @@ def mask2edge(
     # mask = mask.flatten()
 
     # 4. build circular neighborhood
-    neighbor_idxs = np.sqrt(rx**2 + ry**2) <= radius
+    neighbor_idxs = np.sqrt(rx ** 2 + ry ** 2) <= radius
     rx = rx[neighbor_idxs]
     ry = ry[neighbor_idxs]
     num_img_px = len(X)
@@ -58,11 +62,10 @@ def mask2edge(
         X_neighbor = X + x
         Y_neighbor = Y + y
         valid_idx = np.where(
-            (X_neighbor >= 0)
-            & (X_neighbor < w)
-            & (Y_neighbor >= 0)
-            & (Y_neighbor < h)
-        )[0]  # NOTE: it's a tuple...
+            (X_neighbor >= 0) & (X_neighbor < w) & (Y_neighbor >= 0) & (Y_neighbor < h)
+        )[
+            0
+        ]  # NOTE: it's a tuple...
 
         X_center = X[valid_idx]
         Y_center = Y[valid_idx]
@@ -83,9 +86,7 @@ def mask2edge(
         elif edge_type == "outer":
             # TODO: understand what 'outer' does
             diff_idx = np.where(
-                (L_center != L_neighbor)
-                & (L_center == 0)
-                & (L_neighbor != 0)
+                (L_center != L_neighbor) & (L_center == 0) & (L_neighbor != 0)
             )[0]
         else:
             raise ValueError()
@@ -124,15 +125,21 @@ def mask2edge_fast(  # FIXME: probably should rename this
     """
 
     # 1. get dimensions
-    assert len(cat_mask.shape) == 2, f"ERR: only accepts 2-dim masks, but got {cat_mask.shape}"
+    assert (
+        len(cat_mask.shape) == 2
+    ), f"ERR: only accepts 2-dim masks, but got {cat_mask.shape}"
     h, w = cat_mask.shape
 
     # 2. set the considered neighborhood
     search_radius = int(max(math.ceil(radius), 1))
     _x = np.linspace(0, w - 1, w, dtype=np.int64)
     _y = np.linspace(0, h - 1, h, dtype=np.int64)
-    _rx = np.linspace(-search_radius, search_radius, search_radius * 2 + 1, dtype=np.int64)
-    _ry = np.linspace(-search_radius, search_radius, search_radius * 2 + 1, dtype=np.int64)
+    _rx = np.linspace(
+        -search_radius, search_radius, search_radius * 2 + 1, dtype=np.int64
+    )
+    _ry = np.linspace(
+        -search_radius, search_radius, search_radius * 2 + 1, dtype=np.int64
+    )
     X, Y = np.meshgrid(_x, _y)
     rx, ry = np.meshgrid(_rx, _ry)
 
@@ -148,7 +155,7 @@ def mask2edge_fast(  # FIXME: probably should rename this
     candidate_idx = np.where(candidate_edge)[0]
 
     # 4. build circular neighborhood
-    neighbor_idxs = np.sqrt(rx**2 + ry**2) <= radius
+    neighbor_idxs = np.sqrt(rx ** 2 + ry ** 2) <= radius
     rx = rx[neighbor_idxs]
     ry = ry[neighbor_idxs]
     num_img_px = len(X)
@@ -159,11 +166,10 @@ def mask2edge_fast(  # FIXME: probably should rename this
         X_neighbor = candidate_X + x
         Y_neighbor = candidate_Y + y
         select_idx = np.where(
-            (X_neighbor >= 0)
-            & (X_neighbor < w)
-            & (Y_neighbor >= 0)
-            & (Y_neighbor < h)
-        )[0]  # NOTE: it's a tuple...
+            (X_neighbor >= 0) & (X_neighbor < w) & (Y_neighbor >= 0) & (Y_neighbor < h)
+        )[
+            0
+        ]  # NOTE: it's a tuple...
         valid_idx = candidate_idx[select_idx]
 
         X_center = X[valid_idx]
@@ -185,9 +191,7 @@ def mask2edge_fast(  # FIXME: probably should rename this
         elif edge_type == "outer":
             # TODO: understand what 'outer' does
             diff_idx = np.where(
-                (L_center != L_neighbor)
-                & (L_center == 0)
-                & (L_neighbor != 0)
+                (L_center != L_neighbor) & (L_center == 0) & (L_neighbor != 0)
             )[0]
         else:
             raise ValueError()
@@ -215,8 +219,8 @@ if __name__ == "__main__":
     from PIL import Image
 
     mask_path = os.path.join(
-        './preprocess/data/',
-        'cropped_aachen_000000_000019_labelIds.png',
+        "./preprocess/data/",
+        "cropped_aachen_000000_000019_labelIds.png",
     )
     mask_img = Image.open(mask_path)
     mask = np.array(mask_img)

@@ -34,7 +34,7 @@ def default_encoding(
             )
             edge_idx = edge_idx.flatten()
             # bit manipulation
-            cat_edge_map[edge_idx] = cat_edge_map[edge_idx] + 2**(cat_idx)
+            cat_edge_map[edge_idx] = cat_edge_map[edge_idx] + 2 ** (cat_idx)
 
     cat_edge_map = cat_edge_map.reshape(h, w)
 
@@ -73,11 +73,11 @@ def rgb_encoding(
             )
             edge_idx = edge_idx.flatten()
             if cat_idx >= 0 and cat_idx < 8:
-                cat_edge_b[edge_idx] = cat_edge_b[edge_idx] + 2**(cat_idx)
+                cat_edge_b[edge_idx] = cat_edge_b[edge_idx] + 2 ** (cat_idx)
             elif cat_idx >= 8 and cat_idx < 16:
-                cat_edge_g[edge_idx] = cat_edge_g[edge_idx] + 2**(cat_idx - 8)
+                cat_edge_g[edge_idx] = cat_edge_g[edge_idx] + 2 ** (cat_idx - 8)
             elif cat_idx >= 16 and cat_idx < 24:
-                cat_edge_r[edge_idx] = cat_edge_r[edge_idx] + 2**(cat_idx - 16)
+                cat_edge_r[edge_idx] = cat_edge_r[edge_idx] + 2 ** (cat_idx - 16)
             else:
                 raise ValueError()
 
@@ -93,8 +93,9 @@ def rgb_encoding(
 
 def loading_edge_bin(bin_path, h, w, num_categories):
     b = np.fromfile(bin_path, dtype=np.uint32)
-    if b.dtype.byteorder == '>' or \
-       (b.dtype.byteorder == '=' and sys.byteorder == 'big'):
+    if b.dtype.byteorder == ">" or (
+        b.dtype.byteorder == "=" and sys.byteorder == "big"
+    ):
         b = b[:, ::-1]
 
     b = b.reshape(h, w)[:, :, None]  # reshape and make it 3 channels
@@ -102,7 +103,7 @@ def loading_edge_bin(bin_path, h, w, num_categories):
         b.view(np.uint8),
         axis=2,
         count=num_categories,
-        bitorder='little',
+        bitorder="little",
     )
     return ub
 

@@ -3,8 +3,8 @@
 import numpy as np
 
 __all__ = [
-    'convert_label2trainId',
-    'label_mapping',
+    "convert_label2trainId",
+    "label_mapping",
 ]
 
 # NOTE: same as trainId?
@@ -32,8 +32,7 @@ label_mapping = {
 
 
 def convert_label2trainId(label_img: np.ndarray) -> np.ndarray:
-    """python version of `labelid2trainid` function
-    """
+    """python version of `labelid2trainid` function"""
 
     if len(label_img.shape) == 2:
         h, w = label_img.shape
@@ -76,8 +75,8 @@ if __name__ == "__main__":
     # print(new_label2trainId == label_mapping)
 
     label_path = os.path.join(
-        './preprocess/data/',
-        'cropped_aachen_000000_000019_labelIds.png',
+        "./preprocess/data/",
+        "cropped_aachen_000000_000019_labelIds.png",
     )
     label_img = Image.open(label_path)
     label = np.array(label_img)
