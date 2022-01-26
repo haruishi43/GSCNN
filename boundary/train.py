@@ -8,7 +8,6 @@ import torchvision.transforms as transform
 from tqdm import tqdm
 
 from encoding.nn import SyncBatchNorm
-from encoding.parallel import DataParallelModel, DataParallelCriterion
 from encoding import utils
 
 from boundary.losses import EdgeDetectionReweightedLosses
@@ -198,6 +197,8 @@ class Trainer:
                 )
                 train_loss = 0.0
 
+            break
+
         self.logger.info(
             "-> Epoch [%d], Train epoch loss: %.3f"
             % (epoch + 1, train_loss_all / (i + 1))
@@ -207,7 +208,7 @@ class Trainer:
             # save checkpoint every 20 epoch
             filename = "checkpoint_%s.pth.tar" % (epoch + 1)
             if epoch % 19 == 0 or epoch == args.epochs - 1:
-                utils.save_checkpoint(
+                utils.save_checkpoint(  # default save path is `runs`
                     {
                         "epoch": epoch + 1,
                         "state_dict": self.model.module.state_dict(),
@@ -226,7 +227,11 @@ class Trainer:
         val_loss_all = 0.0
         for i, (image, target) in enumerate(tbar):
             with torch.no_grad():
-                outputs = self.model(image.float())
+
+                image = image.float().cuda()
+                target = target.cuda()
+
+                outputs = self.model(image)
                 loss = self.criterion(outputs, target)
 
                 val_loss += loss.item()
