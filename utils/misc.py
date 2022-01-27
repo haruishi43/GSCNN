@@ -248,9 +248,9 @@ def evaluate_eval(
                 predictions_pil = args.dataset_cls.colorize_mask(pred)
                 img_name = data[2]
 
-                prediction_fn = "{}_prediction.png".format(img_name)
+                prediction_fn = "{}_pred_mask.png".format(img_name)
                 predictions_pil.save(os.path.join(to_save_dir, prediction_fn))
-                gt_fn = "{}_gt.png".format(img_name)
+                gt_fn = "{}_gt_mask.png".format(img_name)
                 gt_pil.save(os.path.join(to_save_dir, gt_fn))
                 ip.add_table([(gt_fn, "gt"), (prediction_fn, "prediction")])
                 val_visual.extend(
@@ -273,9 +273,9 @@ def evaluate_eval(
                 predictions_pil = Image.fromarray(predictions_pil.astype(np.uint8))
                 img_name = data[2]
 
-                prediction_fn = "{}_prediction.png".format(img_name)
+                prediction_fn = "{}_pred_edge.png".format(img_name)
                 predictions_pil.save(os.path.join(to_save_dir, prediction_fn))
-                gt_fn = "{}_gt.png".format(img_name)
+                gt_fn = "{}_gt_edge.png".format(img_name)
                 gt_pil.save(os.path.join(to_save_dir, gt_fn))
                 ip.add_table([(gt_fn, "gt"), (prediction_fn, "prediction")])
                 val_visual.extend(
