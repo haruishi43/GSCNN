@@ -165,7 +165,6 @@ def test(args):
                         out = output_transform(predict_c)
                         out.save(path)
 
-            break
     else:
         for i, (images, masks, im_paths, im_sizes) in enumerate(tbar):
             with torch.no_grad():
