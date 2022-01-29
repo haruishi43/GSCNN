@@ -137,14 +137,12 @@ def test(args):
                     # side5 = side5[:, 0 : im_size[1], 0 : im_size[0]]
                     side5 = side5.sigmoid_().cpu()
                     side5 = side5[:, 0 : im_size[1], 0 : im_size[0]]
-                    print(side5.max(), side5.min())
 
                     fuse = output[1].squeeze_()
                     # fuse = fuse.sigmoid_().cpu().numpy()
                     # fuse = fuse[:, 0 : im_size[1], 0 : im_size[0]]
                     fuse = fuse.sigmoid_().cpu()
                     fuse = fuse[:, 0 : im_size[1], 0 : im_size[0]]
-                    print(fuse.max(), fuse.min())
 
                     side5_list.append(side5)
                     fuse_list.append(fuse)
