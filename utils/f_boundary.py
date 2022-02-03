@@ -174,6 +174,7 @@ def db_eval_boundary(foreground_mask, gt_mask, ignore_mask, bound_th=0.008):
     if precision + recall == 0:
         F = 0
     else:
+        # alpha is 0.5
         F = 2 * precision * recall / (precision + recall)
 
     return F, precision
