@@ -191,21 +191,23 @@ class ImageBasedCrossEntropyLoss2d(nn.Module):
         return hist
 
     def forward(self, inputs, targets):
-        input, _ = inputs
-        target, _ = targets
-        target_cpu = target.data.cpu().numpy()
+        if isinstance(inputs, (tuple, list)):
+            inputs = inputs[0]
+        if isinstance(targets, (tuple, list)):
+            targets = targets[0]
+        target_cpu = targets.data.cpu().numpy()
         if self.batch_weights:
             weights = self.calculateWeights(target_cpu)
             self.nll_loss.weight = torch.Tensor(weights).cuda()
 
         loss = 0.0
-        for i in range(0, input.shape[0]):
+        for i in range(0, inputs.shape[0]):
             if not self.batch_weights:
                 weights = self.calculateWeights(target_cpu[i])
                 self.nll_loss.weight = torch.Tensor(weights).cuda()
 
             loss += self.nll_loss(
-                F.log_softmax(input[i].unsqueeze(0)), target[i].unsqueeze(0)
+                F.log_softmax(inputs[i].unsqueeze(0)), targets[i].unsqueeze(0)
             )
         return loss
 
@@ -222,9 +224,11 @@ class CrossEntropyLoss2d(nn.Module):
         self.nll_loss = nn.NLLLoss2d(weight, size_average, ignore_index)
 
     def forward(self, inputs, targets):
-        input, _ = inputs
-        target, _ = targets
+        if isinstance(inputs, (tuple, list)):
+            inputs = inputs[0]
+        if isinstance(targets, (tuple, list)):
+            targets = targets[0]
         # FIXME:
         # UserWarning: Implicit dimension choice for log_softmax has been deprecated.
         # Change the call to include dim=X as an argument.
-        return self.nll_loss(F.log_softmax(input), target)
+        return self.nll_loss(F.log_softmax(inputs), targets)

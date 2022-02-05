@@ -363,7 +363,9 @@ def validate(val_loader, net, criterion, optimizer, curr_epoch, writer):
         with torch.no_grad():
             seg_out, edge_out = net(input)  # output = (1, 19, 713, 713)
 
-        if args.joint_edgeseg_loss:
+        if args.img_wt_loss:
+            val_loss.update(criterion(seg_out, mask_cuda).item(), batch_pixel_size)
+        elif args.joint_edgeseg_loss:
             loss_dict = criterion((seg_out, edge_out), (mask_cuda, edge_cuda))
             val_loss.update(sum(loss_dict.values()).item(), batch_pixel_size)
         else:
