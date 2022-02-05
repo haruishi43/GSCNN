@@ -250,7 +250,10 @@ def train(train_loader, net, criterion, optimizer, curr_epoch, writer):
         main_loss = None
         loss_dict = None
 
-        if args.joint_edgeseg_loss:
+        if args.img_wt_loss:
+            main_loss = net(inputs, gts=(mask, edge))
+
+        elif args.joint_edgeseg_loss:
             loss_dict = net(inputs, gts=(mask, edge))
 
             if args.seg_weight > 0:
