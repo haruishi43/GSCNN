@@ -30,6 +30,10 @@ def get_loss(args):
             ignore_index=args.dataset_cls.ignore_label,
             upper_bound=args.wt_bound,
         ).cuda()
+        criterion_val = CrossEntropyLoss2d(
+            size_average=True,
+            ignore_index=args.dataset_cls.ignore_label,
+        ).cuda()
     elif args.joint_edgeseg_loss:
         criterion = JointEdgeSegLoss(
             classes=args.dataset_cls.num_classes,
@@ -40,20 +44,32 @@ def get_loss(args):
             att_weight=args.att_weight,
             dual_weight=args.dual_weight,
         ).cuda()
-
+        criterion_val = JointEdgeSegLoss(
+            classes=args.dataset_cls.num_classes,
+            mode="val",
+            ignore_index=args.dataset_cls.ignore_label,
+            upper_bound=args.wt_bound,
+            edge_weight=args.edge_weight,
+            seg_weight=args.seg_weight,
+        ).cuda()
     else:
         criterion = CrossEntropyLoss2d(
-            size_average=True, ignore_index=args.dataset_cls.ignore_label
+            size_average=True,
+            ignore_index=args.dataset_cls.ignore_label,
+        ).cuda()
+        criterion_val = CrossEntropyLoss2d(
+            size_average=True,
+            ignore_index=args.dataset_cls.ignore_label,
         ).cuda()
 
-    criterion_val = JointEdgeSegLoss(
-        classes=args.dataset_cls.num_classes,
-        mode="val",
-        ignore_index=args.dataset_cls.ignore_label,
-        upper_bound=args.wt_bound,
-        edge_weight=args.edge_weight,
-        seg_weight=args.seg_weight,
-    ).cuda()
+    # criterion_val = JointEdgeSegLoss(
+    #     classes=args.dataset_cls.num_classes,
+    #     mode="val",
+    #     ignore_index=args.dataset_cls.ignore_label,
+    #     upper_bound=args.wt_bound,
+    #     edge_weight=args.edge_weight,
+    #     seg_weight=args.seg_weight,
+    # ).cuda()
 
     return criterion, criterion_val
 
