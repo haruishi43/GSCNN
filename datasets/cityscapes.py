@@ -251,11 +251,10 @@ class CityScapes(data.Dataset):
         if self.target_transform is not None:
             mask = self.target_transform(mask)
 
+        # Create Edges
         _edgemap = mask.numpy()
         _edgemap = edge_utils.mask_to_onehot(_edgemap, num_classes)
-
-        _edgemap = edge_utils.onehot_to_binary_edges(_edgemap, 2, num_classes)
-
+        _edgemap = edge_utils.onehot_to_binary_edges(_edgemap, 2, num_classes)  # This needs fixing
         edgemap = torch.from_numpy(_edgemap).float()
 
         # Debug
