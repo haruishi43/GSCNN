@@ -2,12 +2,20 @@
 
 from collections import OrderedDict
 from functools import partial
-import sys
 
 import torch.nn as nn
 import torch
 
 import network.mynn as mynn
+
+__all__ = [
+    'wider_resnet_16',
+    'wider_resnet_20',
+    'wider_resnet_38',
+    'wider_resnet_16_a2',
+    'wider_resnet_20_a2',
+    'wider_resnet_38_a2',
+]
 
 
 def bnrelu(channels):
@@ -392,18 +400,90 @@ class WiderResNetA2(nn.Module):
             return out
 
 
-_NETS = {
-    "16": {"structure": [1, 1, 1, 1, 1, 1]},
-    "20": {"structure": [1, 1, 1, 3, 1, 1]},
-    "38": {"structure": [3, 3, 6, 3, 1, 1]},
-}
+# _NETS = {
+#     "16": {"structure": [1, 1, 1, 1, 1, 1]},
+#     "20": {"structure": [1, 1, 1, 3, 1, 1]},
+#     "38": {"structure": [3, 3, 6, 3, 1, 1]},
+# }
 
-__all__ = []
-for name, params in _NETS.items():
-    net_name = "wider_resnet" + name
-    setattr(sys.modules[__name__], net_name, partial(WiderResNet, **params))
-    __all__.append(net_name)
-for name, params in _NETS.items():
-    net_name = "wider_resnet" + name + "_a2"
-    setattr(sys.modules[__name__], net_name, partial(WiderResNetA2, **params))
-    __all__.append(net_name)
+# __all__ = []
+# for name, params in _NETS.items():
+#     net_name = "wider_resnet" + name
+#     setattr(sys.modules[__name__], net_name, partial(WiderResNet, **params))
+#     __all__.append(net_name)
+# for name, params in _NETS.items():
+#     net_name = "wider_resnet" + name + "_a2"
+#     setattr(sys.modules[__name__], net_name, partial(WiderResNetA2, **params))
+#     __all__.append(net_name)
+
+
+def wider_resnet16(pretrained=False, **kwargs):
+    assert pretrained is False, "pretrain files don't exist"
+    return WiderResNet(
+        structure=[1, 1, 1, 1, 1, 1],
+        **kwargs,
+    )
+
+
+def wider_resnet20(pretrained=False, **kwargs):
+    assert pretrained is False, "pretrain files don't exist"
+    return WiderResNet(
+        structure=[1, 1, 1, 3, 1, 1],
+        **kwargs,
+    )
+
+
+def wider_resnet38(pretrained=True, **kwargs):
+    model = WiderResNet(
+        structure=[3, 3, 6, 3, 1, 1],
+        **kwargs,
+    )
+    if pretrained:
+        try:
+            _model = torch.nn.DataParallel(model)
+            checkpoint = torch.load('./pretrained_models/wider_resnet38.pth.tar', map_location='cpu')
+            _model.load_state_dict(checkpoint['state_dict'])
+            model = _model.module
+            del checkpoint
+            del _model
+            print("Loaded pretrain weights")
+        except RuntimeError:
+            print("Please download the ImageNet weights of WideResNet38 in our repo to ./pretrained_models/wider_resnet38.pth.tar.")
+            raise RuntimeError("=====================Could not load ImageNet weights of WideResNet38 network.=======================")
+    return model
+
+
+def wider_resnet16_a2(pretrained=False, **kwargs):
+    assert pretrained is False, "pretrain files don't exist"
+    return WiderResNetA2(
+        structure=[1, 1, 1, 1, 1, 1],
+        **kwargs,
+    )
+
+
+def wider_resnet20_a2(pretrained=False, **kwargs):
+    assert pretrained is False, "pretrain files don't exist"
+    return WiderResNetA2(
+        structure=[1, 1, 1, 3, 1, 1],
+        **kwargs,
+    )
+
+
+def wider_resnet38_a2(pretrained=True, **kwargs):
+    model = WiderResNetA2(
+        structure=[3, 3, 6, 3, 1, 1],
+        **kwargs,
+    )
+    if pretrained:
+        try:
+            _model = torch.nn.DataParallel(model)
+            checkpoint = torch.load('./pretrained_models/wider_resnet38.pth.tar', map_location='cpu')
+            _model.load_state_dict(checkpoint['state_dict'])
+            model = _model.module
+            del checkpoint
+            del _model
+            print("Loaded pretrain weights")
+        except RuntimeError:
+            print("Please download the ImageNet weights of WideResNet38 in our repo to ./pretrained_models/wider_resnet38.pth.tar.")
+            raise RuntimeError("=====================Could not load ImageNet weights of WideResNet38 network.=======================")
+    return model

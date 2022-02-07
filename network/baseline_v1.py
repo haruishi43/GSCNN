@@ -191,13 +191,13 @@ class GSCNN(nn.Module):
     channels = [256, 512, 1024, 2048]
     """
 
-    def __init__(self, num_classes, trunk=None, criterion=None):
+    def __init__(self, num_classes, trunk=None, criterion=None, pretrained=True):
 
         super(GSCNN, self).__init__()
         self.criterion = criterion
         self.num_classes = num_classes
 
-        resnet = Resnet.resnet101(pretrained=True)
+        resnet = Resnet.resnet101(pretrained=pretrained)
         self.r_conv1 = resnet.conv1
         self.r_bn1 = resnet.bn1
         self.r_relu = resnet.relu

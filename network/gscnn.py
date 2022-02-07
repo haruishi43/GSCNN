@@ -198,13 +198,13 @@ class GSCNN(nn.Module):
                   (1024, 2048, 4096)]
     """
 
-    def __init__(self, num_classes, trunk=None, criterion=None):
+    def __init__(self, num_classes, trunk=None, criterion=None, pretrained=True):
 
         super(GSCNN, self).__init__()
         self.criterion = criterion
         self.num_classes = num_classes
 
-        wide_resnet = wider_resnet38_a2(classes=1000, dilation=True)
+        wide_resnet = wider_resnet38_a2(pretrained=pretrained, classes=1000, dilation=True)
         # wide_resnet = torch.nn.DataParallel(wide_resnet)
         # wide_resnet = wide_resnet.module
         self.mod1 = wide_resnet.mod1
