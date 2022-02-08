@@ -18,7 +18,7 @@ from skimage.segmentation import find_boundaries
 import torch
 import torchvision.transforms as torch_tr
 
-from config import cfg
+from sseg.config import cfg
 
 
 class RandomVerticalFlip(object):

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-from config import cfg
 import torch.nn as nn
+
+from sseg.config import cfg
 
 # from math import sqrt
 # import torch

@@ -1,26 +1,17 @@
 #!/usr/bin/env python3
 
-from __future__ import absolute_import
-from __future__ import division
-
 import argparse
-from functools import partial
 import logging
-import math
 import os
-import sys
 
 import torch
 import numpy as np
 
-from config import cfg, assert_and_infer_cfg
-import datasets
-import sseg.loss as loss
-import network
-import sseg.optimizer as optimizer
-
-from utils.misc import AverageMeter, prep_experiment, evaluate_eval, fast_hist
-from utils.f_boundary import eval_mask_boundary
+from sseg.config import cfg, assert_and_infer_cfg
+from sseg import datasets, network, loss, optimizer
+from sseg.utils.misc import AverageMeter, prep_experiment, evaluate_eval, fast_hist
+from sseg.utils.f_boundary import eval_mask_boundary
+from sseg.utils.debug import timer
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -146,6 +137,18 @@ parser.add_argument(
     help="",
 )
 parser.add_argument(
+    "--mf_nproc",
+    type=int,
+    default=16,
+    help="validation mf num processes",
+)
+parser.add_argument(
+    "--no_val_mf",
+    action="store_true",
+    default=False,
+    help="validates mf",
+)
+parser.add_argument(
     "--test_mode",
     action="store_true",
     default=False,
@@ -196,7 +199,7 @@ def main():
         # Early evaluation for benchmarking
         default_eval_epoch = 1
         validate(val_loader, net, criterion_val, optim, default_eval_epoch, writer)
-        evaluate(val_loader, net)
+        evaluate(val_loader, net, args)
         return
 
     # Main Loop
@@ -206,13 +209,14 @@ def main():
         cfg.EPOCH = epoch
         cfg.immutable(True)
 
-        scheduler.step()
-
-        train(train_loader, net, criterion, optim, epoch, writer)
+        train(train_loader, net, optim, epoch, writer)
         validate(val_loader, net, criterion_val, optim, epoch, writer)
 
+        scheduler.step()
 
-def train(train_loader, net, criterion, optimizer, curr_epoch, writer):
+
+@timer(precision=6)
+def train(train_loader, net, optimizer, curr_epoch, writer):
     """
     Runs the training loop per epoch
     train_loader: Data loader for train
@@ -256,7 +260,7 @@ def train(train_loader, net, criterion, optimizer, curr_epoch, writer):
         loss_dict = None
 
         if args.img_wt_loss:
-            main_loss = net(inputs, gts=(mask, edge))
+            main_loss = net(inputs, gts=mask)
 
         elif args.joint_edgeseg_loss:
             loss_dict = net(inputs, gts=(mask, edge))
@@ -339,6 +343,7 @@ def train(train_loader, net, criterion, optimizer, curr_epoch, writer):
             return
 
 
+@timer(precision=6)
 def validate(val_loader, net, criterion, optimizer, curr_epoch, writer):
     """
     Runs the validation loop after each training epoch
@@ -363,22 +368,12 @@ def validate(val_loader, net, criterion, optimizer, curr_epoch, writer):
         h, w = mask.size()[1:]
 
         batch_pixel_size = input.size(0) * input.size(2) * input.size(3)
-        input, mask_cuda, edge_cuda = input.cuda(), mask.cuda(), edge.cuda()
+        input, mask_cuda = input.cuda(), mask.cuda()
 
         with torch.no_grad():
             seg_out, edge_out = net(input)  # output = (1, 19, 713, 713)
 
-        if args.img_wt_loss:
-            val_loss.update(criterion(seg_out, mask_cuda).item(), batch_pixel_size)
-        elif args.joint_edgeseg_loss:
-            loss_dict = criterion((seg_out, edge_out), (mask_cuda, edge_cuda))
-            val_loss.update(sum(loss_dict.values()).item(), batch_pixel_size)
-        else:
-            val_loss.update(criterion(seg_out, mask_cuda).item(), batch_pixel_size)
-
-        # Collect data from different GPU to a single GPU since
-        # encoding.parallel.criterionparallel function calculates distributed loss
-        # functions
+        val_loss.update(criterion(seg_out, mask_cuda).item(), batch_pixel_size)
 
         seg_predictions = seg_out.data.max(1)[1].cpu()
         edge_predictions = edge_out.max(1)[0].cpu()
@@ -402,6 +397,17 @@ def validate(val_loader, net, criterion, optimizer, curr_epoch, writer):
             args.dataset_cls.num_classes,
         )
 
+        if not args.no_val_mf:
+            # FIXME: slow
+            Fpc, Fc = eval_mask_boundary(
+                seg_predictions.numpy(),
+                mask.numpy(),
+                args.dataset_cls.num_classes,
+                num_proc=args.mf_nproc,
+                bound_th=0.0005,  # FIXME: hardcoded for now
+            )
+            mf_score.update(np.sum(Fpc / Fc) / args.dataset_cls.num_classes)
+
         del seg_out, edge_out, vi, data
 
     if args.local_rank == 0:
@@ -422,7 +428,7 @@ def validate(val_loader, net, criterion, optimizer, curr_epoch, writer):
     return val_loss.avg
 
 
-def evaluate(val_loader, net):
+def evaluate(val_loader, net, args):
     """
     Runs the evaluation loop and prints F score
     val_loader: Data loader for validation
@@ -430,43 +436,99 @@ def evaluate(val_loader, net):
     return:
     """
     net.eval()
-    for thresh in args.eval_thresholds.split(","):
-        mf_score1 = AverageMeter()
-        mf_pc_score1 = AverageMeter()
-        ap_score1 = AverageMeter()
-        ap_pc_score1 = AverageMeter()
+    for i, thresh in enumerate(args.eval_thresholds.split(",")):
         Fpc = np.zeros((args.dataset_cls.num_classes))
         Fc = np.zeros((args.dataset_cls.num_classes))
-        for vi, data in enumerate(val_loader):
-            input, mask, edge, img_names = data
-            assert len(input.size()) == 4 and len(mask.size()) == 3
-            assert input.size()[2:] == mask.size()[1:]
-            h, w = mask.size()[1:]
+        val_loader.sampler.set_epoch(i + 1)
+        evaluate_F_score(val_loader, net, thresh, Fpc, Fc)
 
-            batch_pixel_size = input.size(0) * input.size(2) * input.size(3)
-            input, mask_cuda, edge_cuda = input.cuda(), mask.cuda(), edge.cuda()
 
-            with torch.no_grad():
-                seg_out, edge_out = net(input)
+@timer(precision=6)
+def evaluate_F_score(val_loader, net, thresh, Fpc, Fc):
+    for vi, data in enumerate(val_loader):
+        input, mask, edge, img_names = data
+        assert len(input.size()) == 4 and len(mask.size()) == 3
+        assert input.size()[2:] == mask.size()[1:]
+        input = input.cuda()
 
-            seg_predictions = seg_out.data.max(1)[1].cpu()
-            edge_predictions = edge_out.max(1)[0].cpu()
+        with torch.no_grad():
+            seg_out, _ = net(input)
 
-            logging.info("evaluating: %d / %d" % (vi + 1, len(val_loader)))
-            _Fpc, _Fc = eval_mask_boundary(
-                seg_predictions.numpy(),
-                mask.numpy(),
-                args.dataset_cls.num_classes,
-                bound_th=float(thresh),
-            )
-            Fc += _Fc
-            Fpc += _Fpc
+        seg_predictions = seg_out.data.max(1)[1].cpu()
 
-            del seg_out, edge_out, vi, data
+        print("evaluating: %d / %d" % (vi + 1, len(val_loader)))
+        _Fpc, _Fc = eval_mask_boundary(
+            seg_predictions.numpy(),
+            mask.numpy(),
+            args.dataset_cls.num_classes,
+            bound_th=float(thresh),
+        )
+        Fc += _Fc
+        Fpc += _Fpc
 
+        del seg_out, vi, data
+
+    # if args.apex:
+    #     Fc_tensor = torch.cuda.FloatTensor(Fc)
+    #     torch.distributed.all_reduce(Fc_tensor, op=torch.distributed.ReduceOp.SUM)
+    #     Fc = Fc_tensor.cpu().numpy()
+    #     Fpc_tensor = torch.cuda.FloatTensor(Fpc)
+    #     torch.distributed.all_reduce(Fpc_tensor, op=torch.distributed.ReduceOp.SUM)
+    #     Fpc = Fpc_tensor.cpu().numpy()
+
+    if args.local_rank == 0:
         logging.info("Threshold: " + thresh)
         logging.info("F_Score: " + str(np.sum(Fpc / Fc) / args.dataset_cls.num_classes))
         logging.info("F_Score (Classwise): " + str(Fpc / Fc))
+
+    return Fpc
+
+
+# def old_evaluate(val_loader, net):
+#     """
+#     Runs the evaluation loop and prints F score
+#     val_loader: Data loader for validation
+#     net: thet network
+#     return:
+#     """
+#     net.eval()
+#     for thresh in args.eval_thresholds.split(","):
+#         mf_score1 = AverageMeter()
+#         mf_pc_score1 = AverageMeter()
+#         ap_score1 = AverageMeter()
+#         ap_pc_score1 = AverageMeter()
+#         Fpc = np.zeros((args.dataset_cls.num_classes))
+#         Fc = np.zeros((args.dataset_cls.num_classes))
+#         for vi, data in enumerate(val_loader):
+#             input, mask, edge, img_names = data
+#             assert len(input.size()) == 4 and len(mask.size()) == 3
+#             assert input.size()[2:] == mask.size()[1:]
+#             h, w = mask.size()[1:]
+
+#             batch_pixel_size = input.size(0) * input.size(2) * input.size(3)
+#             input, mask_cuda, edge_cuda = input.cuda(), mask.cuda(), edge.cuda()
+
+#             with torch.no_grad():
+#                 seg_out, edge_out = net(input)
+
+#             seg_predictions = seg_out.data.max(1)[1].cpu()
+#             edge_predictions = edge_out.max(1)[0].cpu()
+
+#             logging.info("evaluating: %d / %d" % (vi + 1, len(val_loader)))
+#             _Fpc, _Fc = eval_mask_boundary(
+#                 seg_predictions.numpy(),
+#                 mask.numpy(),
+#                 args.dataset_cls.num_classes,
+#                 bound_th=float(thresh),
+#             )
+#             Fc += _Fc
+#             Fpc += _Fpc
+
+#             del seg_out, edge_out, vi, data
+
+#         logging.info("Threshold: " + thresh)
+#         logging.info("F_Score: " + str(np.sum(Fpc / Fc) / args.dataset_cls.num_classes))
+#         logging.info("F_Score (Classwise): " + str(Fpc / Fc))
 
 
 if __name__ == "__main__":

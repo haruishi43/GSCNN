@@ -75,7 +75,11 @@ def test(args):
             outdir_list_fuse.append(outdir_fuse)
 
     else:
-        outdir = "results/boundary/%s/%s/%s_vis" % (args.dataset, args.model, args.checkname)
+        outdir = "results/boundary/%s/%s/%s_vis" % (
+            args.dataset,
+            args.model,
+            args.checkname,
+        )
         if not os.path.exists(outdir):
             os.makedirs(outdir)
 

@@ -14,7 +14,7 @@ import torch
 import numpy as np
 from PIL import Image
 
-from config import cfg, assert_and_infer_cfg
+from sseg.config import cfg, assert_and_infer_cfg
 import datasets
 import sseg.loss as loss
 import network
@@ -229,10 +229,6 @@ def validate(val_loader, net, criterion, optimizer, curr_epoch, writer):
         else:
             val_loss.update(criterion(seg_out, mask_cuda).item(), batch_pixel_size)
 
-        # Collect data from different GPU to a single GPU since
-        # encoding.parallel.criterionparallel function calculates distributed loss
-        # functions
-
         seg_predictions = seg_out.data.max(1)[1].cpu()
         edge_predictions = edge_out.max(1)[0].cpu()
 
@@ -250,7 +246,7 @@ def validate(val_loader, net, criterion, optimizer, curr_epoch, writer):
 
             prediction_fn = "{}_pred_mask.png".format(img_name)
             gt_fn = "{}_gt_mask.png".format(img_name)
-            scene_name = img_name.split('_')[0]
+            scene_name = img_name.split("_")[0]
             save_dir = os.path.join(save_root, scene_name)
             os.makedirs(save_dir, exist_ok=True)
 
@@ -266,7 +262,7 @@ def validate(val_loader, net, criterion, optimizer, curr_epoch, writer):
 
             prediction_fn = "{}_pred_edge.png".format(img_name)
             gt_fn = "{}_gt_edge.png".format(img_name)
-            scene_name = img_name.split('_')[0]
+            scene_name = img_name.split("_")[0]
             save_dir = os.path.join(save_root, scene_name)
             os.makedirs(save_dir, exist_ok=True)
 

@@ -6,7 +6,7 @@ import math
 import torch.nn as nn
 from torch.utils import model_zoo
 
-import network.mynn as mynn
+import sseg.network.mynn as mynn
 
 __all__ = [
     "SENet",

@@ -50,12 +50,13 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 
 import numpy as np
 from multiprocessing import Pool
-from tqdm import tqdm
+
+# from tqdm import tqdm
 
 """ Utilities for computing, reading and saving benchmark evaluation."""
 
 
-def eval_mask_boundary(seg_mask, gt_mask, num_classes, num_proc=10, bound_th=0.008):
+def eval_mask_boundary(seg_mask, gt_mask, num_classes, num_proc=16, bound_th=0.008):
     """
     Compute F score for a segmentation mask
 
@@ -73,7 +74,7 @@ def eval_mask_boundary(seg_mask, gt_mask, num_classes, num_proc=10, bound_th=0.0
 
     Fpc = np.zeros(num_classes)
     Fc = np.zeros(num_classes)
-    for class_id in tqdm(range(num_classes)):
+    for class_id in range(num_classes):
         args = [
             (
                 (seg_mask[i] == class_id).astype(np.uint8),

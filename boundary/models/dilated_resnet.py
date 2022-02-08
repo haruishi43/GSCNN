@@ -332,9 +332,7 @@ def resnet101(pretrained=False, root="pretrain_models/", **kwargs):
     if pretrained:
         from encoding.models.model_store import get_model_file
 
-        model.load_state_dict(
-            torch.load(get_model_file("resnet101")), strict=False
-        )
+        model.load_state_dict(torch.load(get_model_file("resnet101")), strict=False)
     return model
 
 

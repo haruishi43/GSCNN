@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
 
+import cv2
+import numpy as np
+
 import torch
 from torch.autograd import Variable
 from torch import nn
 import torch.nn.functional as F
 
-# from config import cfg
-
-# from network import SEresnext
-from network import Resnet
-from network.mynn import initialize_weights, Norm2d
-
-
-from my_functionals import GatedSpatialConv as gsc
-
-import cv2
-import numpy as np
+# from sseg.config import cfg
+# from sseg.network import SEresnext
+from sseg.network import Resnet
+from sseg.network.mynn import initialize_weights, Norm2d
+from sseg.my_functionals import GatedSpatialConv as gsc
 
 
 class Crop(nn.Module):
@@ -110,9 +107,6 @@ class _AtrousSpatialPyramidPoolingModule(nn.Module):
 
     def __init__(self, in_dim, reduction_dim=256, output_stride=16, rates=[6, 12, 18]):
         super(_AtrousSpatialPyramidPoolingModule, self).__init__()
-
-        # Check if we are using distributed BN and use the nn from encoding.nn
-        # library rather than using standard pytorch.nn
 
         if output_stride == 8:
             rates = [2 * r for r in rates]

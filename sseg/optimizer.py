@@ -8,7 +8,7 @@ from torch import optim
 import math
 import logging
 
-# from config import cfg
+# from sseg.config import cfg
 
 
 def get_optimizer(args, net):

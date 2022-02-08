@@ -12,9 +12,9 @@ import torch
 from torch.utils import data
 import torchvision.transforms as transforms
 
-from config import cfg
-import datasets.cityscapes_labels as cityscapes_labels
-import datasets.edge_utils as edge_utils
+from sseg.config import cfg
+import sseg.datasets.cityscapes_labels as cityscapes_labels
+import sseg.datasets.edge_utils as edge_utils
 
 trainid_to_name = cityscapes_labels.trainId2name
 id_to_trainid = cityscapes_labels.label2trainId
@@ -254,7 +254,9 @@ class CityScapes(data.Dataset):
         # Create Edges
         _edgemap = mask.numpy()
         _edgemap = edge_utils.mask_to_onehot(_edgemap, num_classes)
-        _edgemap = edge_utils.onehot_to_binary_edges(_edgemap, 2, num_classes)  # This needs fixing
+        _edgemap = edge_utils.onehot_to_binary_edges(
+            _edgemap, 2, num_classes
+        )  # This needs fixing
         edgemap = torch.from_numpy(_edgemap).float()
 
         # Debug

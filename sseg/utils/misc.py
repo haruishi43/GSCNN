@@ -19,7 +19,7 @@ from torch.utils.tensorboard import SummaryWriter
 import torchvision.transforms as standard_transforms
 import torchvision.utils as vutils
 
-from utils.image_page import ImagePage
+from sseg.utils.image_page import ImagePage
 
 
 # Create unique output dir name based on non-default command line args
@@ -239,7 +239,7 @@ def evaluate_eval(
         idx = 0
 
         visualize = standard_transforms.Compose(
-            [standard_transforms.Scale(384), standard_transforms.ToTensor()]
+            [standard_transforms.Resize(384), standard_transforms.ToTensor()]
         )
         for bs_idx, bs_data in enumerate(dump_images):
             for local_idx, data in enumerate(zip(bs_data[0], bs_data[1], bs_data[2])):
@@ -329,7 +329,20 @@ def evaluate_eval(
 
 
 def fast_hist(label_pred, label_true, num_classes):
+    # mask indicates pixels we care about
     mask = (label_true >= 0) & (label_true < num_classes)
+
+    # stretch ground truth labels by num_classes
+    #   class 0  -> 0
+    #   class 1  -> 19
+    #   class 18 -> 342
+    #
+    # TP at 0 + 0, 1 + 1, 2 + 2 ...
+    #
+    # TP exist where value == num_classes*class_id + class_id
+    # FP = row[class].sum() - TP
+    # FN = col[class].sum() - TP
+
     hist = np.bincount(
         num_classes * label_true[mask].astype(int) + label_pred[mask],
         minlength=num_classes ** 2,

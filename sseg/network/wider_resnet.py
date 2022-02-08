@@ -6,15 +6,15 @@ from functools import partial
 import torch.nn as nn
 import torch
 
-import network.mynn as mynn
+import sseg.network.mynn as mynn
 
 __all__ = [
-    'wider_resnet16',
-    'wider_resnet20',
-    'wider_resnet38',
-    'wider_resnet16_a2',
-    'wider_resnet20_a2',
-    'wider_resnet38_a2',
+    "wider_resnet16",
+    "wider_resnet20",
+    "wider_resnet38",
+    "wider_resnet16_a2",
+    "wider_resnet20_a2",
+    "wider_resnet38_a2",
 ]
 
 
@@ -73,9 +73,6 @@ class IdentityResidualBlock(nn.Module):
         """
         super(IdentityResidualBlock, self).__init__()
         self.dist_bn = dist_bn
-
-        # Check if we are using distributed BN and use the nn from encoding.nn
-        # library rather than using standard pytorch.nn
 
         # Check parameters for inconsistencies
         if len(channels) != 2 and len(channels) != 3:
@@ -292,8 +289,6 @@ class WiderResNetA2(nn.Module):
         super(WiderResNetA2, self).__init__()
         self.dist_bn = dist_bn
 
-        # If using distributed batch norm, use the encoding.nn as oppose to torch.nn
-
         nn.Dropout = nn.Dropout2d
         norm_act = bnrelu
         self.structure = structure
@@ -424,15 +419,21 @@ def wider_resnet38(pretrained=True, **kwargs):
     if pretrained:
         try:
             _model = torch.nn.DataParallel(model)
-            checkpoint = torch.load('./pretrained_models/wider_resnet38.pth.tar', map_location='cpu')
-            _model.load_state_dict(checkpoint['state_dict'])
+            checkpoint = torch.load(
+                "./pretrained_models/wider_resnet38.pth.tar", map_location="cpu"
+            )
+            _model.load_state_dict(checkpoint["state_dict"])
             model = _model.module
             del checkpoint
             del _model
             print("Loaded pretrain weights")
         except RuntimeError:
-            print("Please download the ImageNet weights of WideResNet38 in our repo to ./pretrained_models/wider_resnet38.pth.tar.")
-            raise RuntimeError("=====================Could not load ImageNet weights of WideResNet38 network.=======================")
+            print(
+                "Please download the ImageNet weights of WideResNet38 in our repo to ./pretrained_models/wider_resnet38.pth.tar."
+            )
+            raise RuntimeError(
+                "=====================Could not load ImageNet weights of WideResNet38 network.======================="
+            )
     return model
 
 
@@ -460,13 +461,19 @@ def wider_resnet38_a2(pretrained=True, **kwargs):
     if pretrained:
         try:
             _model = torch.nn.DataParallel(model)
-            checkpoint = torch.load('./pretrained_models/wider_resnet38.pth.tar', map_location='cpu')
-            _model.load_state_dict(checkpoint['state_dict'])
+            checkpoint = torch.load(
+                "./pretrained_models/wider_resnet38.pth.tar", map_location="cpu"
+            )
+            _model.load_state_dict(checkpoint["state_dict"])
             model = _model.module
             del checkpoint
             del _model
             print("Loaded pretrain weights")
         except RuntimeError:
-            print("Please download the ImageNet weights of WideResNet38 in our repo to ./pretrained_models/wider_resnet38.pth.tar.")
-            raise RuntimeError("=====================Could not load ImageNet weights of WideResNet38 network.=======================")
+            print(
+                "Please download the ImageNet weights of WideResNet38 in our repo to ./pretrained_models/wider_resnet38.pth.tar."
+            )
+            raise RuntimeError(
+                "=====================Could not load ImageNet weights of WideResNet38 network.======================="
+            )
     return model

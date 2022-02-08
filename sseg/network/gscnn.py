@@ -5,12 +5,12 @@ from torch.autograd import Variable
 from torch import nn
 import torch.nn.functional as F
 
-# from config import cfg
+# from sseg.config import cfg
 
-# from network import SEresnext
-from network import Resnet
-from network.wider_resnet import wider_resnet38_a2
-from network.mynn import initialize_weights, Norm2d
+# from sseg.network import SEresnext
+from sseg.network import Resnet
+from sseg.network.wider_resnet import wider_resnet38_a2
+from sseg.network.mynn import initialize_weights, Norm2d
 
 
 from my_functionals import GatedSpatialConv as gsc
@@ -112,9 +112,6 @@ class _AtrousSpatialPyramidPoolingModule(nn.Module):
     def __init__(self, in_dim, reduction_dim=256, output_stride=16, rates=[6, 12, 18]):
         super(_AtrousSpatialPyramidPoolingModule, self).__init__()
 
-        # Check if we are using distributed BN and use the nn from encoding.nn
-        # library rather than using standard pytorch.nn
-
         if output_stride == 8:
             rates = [2 * r for r in rates]
         elif output_stride == 16:
@@ -204,7 +201,9 @@ class GSCNN(nn.Module):
         self.criterion = criterion
         self.num_classes = num_classes
 
-        wide_resnet = wider_resnet38_a2(pretrained=pretrained, classes=1000, dilation=True)
+        wide_resnet = wider_resnet38_a2(
+            pretrained=pretrained, classes=1000, dilation=True
+        )
         # wide_resnet = torch.nn.DataParallel(wide_resnet)
         # wide_resnet = wide_resnet.module
         self.mod1 = wide_resnet.mod1
