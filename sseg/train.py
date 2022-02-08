@@ -40,7 +40,7 @@ parser.add_argument(
 parser.add_argument(
     "--eval_thresholds",
     type=str,
-    default="0.0005,0.001875,0.00375,0.005",
+    default="0.00088,0.001875,0.00375,0.005",
     help="Thresholds for boundary evaluation",
 )
 parser.add_argument("--rescale", type=float, default=1.0, help="Rescaled LR Rate")
@@ -404,7 +404,7 @@ def validate(val_loader, net, criterion, optimizer, curr_epoch, writer):
                 mask.numpy(),
                 args.dataset_cls.num_classes,
                 num_proc=args.mf_nproc,
-                bound_th=0.0005,  # FIXME: hardcoded for now
+                bound_th=0.00088,  # FIXME: hardcoded for now
             )
             mf_score.update(np.sum(Fpc / Fc) / args.dataset_cls.num_classes)
 
