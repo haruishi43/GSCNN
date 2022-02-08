@@ -9,12 +9,12 @@ import torch
 import network.mynn as mynn
 
 __all__ = [
-    'wider_resnet_16',
-    'wider_resnet_20',
-    'wider_resnet_38',
-    'wider_resnet_16_a2',
-    'wider_resnet_20_a2',
-    'wider_resnet_38_a2',
+    'wider_resnet16',
+    'wider_resnet20',
+    'wider_resnet38',
+    'wider_resnet16_a2',
+    'wider_resnet20_a2',
+    'wider_resnet38_a2',
 ]
 
 
@@ -398,23 +398,6 @@ class WiderResNetA2(nn.Module):
             return self.classifier(out)
         else:
             return out
-
-
-# _NETS = {
-#     "16": {"structure": [1, 1, 1, 1, 1, 1]},
-#     "20": {"structure": [1, 1, 1, 3, 1, 1]},
-#     "38": {"structure": [3, 3, 6, 3, 1, 1]},
-# }
-
-# __all__ = []
-# for name, params in _NETS.items():
-#     net_name = "wider_resnet" + name
-#     setattr(sys.modules[__name__], net_name, partial(WiderResNet, **params))
-#     __all__.append(net_name)
-# for name, params in _NETS.items():
-#     net_name = "wider_resnet" + name + "_a2"
-#     setattr(sys.modules[__name__], net_name, partial(WiderResNetA2, **params))
-#     __all__.append(net_name)
 
 
 def wider_resnet16(pretrained=False, **kwargs):
