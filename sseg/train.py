@@ -102,7 +102,12 @@ parser.add_argument(
 )
 parser.add_argument("--bs_mult", type=int, default=1)
 parser.add_argument("--bs_mult_val", type=int, default=2)
-parser.add_argument("--crop_size", type=int, default=720, help="training crop size")
+parser.add_argument(
+    "--crop_size",
+    type=int,
+    default=800,  # orig: 720, paper: 800, DSN: 832
+    help="training crop size",
+)
 parser.add_argument(
     "--pre_size",
     type=int,

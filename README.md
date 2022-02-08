@@ -25,6 +25,9 @@ __Other dependencies__:
 
 #### Download pretrained models
 
+Download WideResNet38 trained on ImageNet for training: [pretrained_models/wider_resnet38.pth.tar](https://drive.google.com/file/d/1OfKQPQXbXGbWAQJj2R82x6qyz6f-1U6t/view?usp=sharing). This is provided by [NVIDIA/semantic-segmentation](https://github.com/NVIDIA/semantic-segmentation).
+
+
 Download the pretrained model from the [Google Drive Folder](https://drive.google.com/file/d/1wlhAXg-PfoUM-rFy2cksk43Ng3PpsK2c/view), and save it in 'checkpoints/'
 
 #### Download inferred images
