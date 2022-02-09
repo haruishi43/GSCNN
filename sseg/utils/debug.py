@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from functools import wraps
 from time import perf_counter
 from typing import Any, Callable, Optional, TypeVar, cast

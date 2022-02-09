@@ -10,8 +10,8 @@ import torch.nn.functional as F
 from torch.nn.modules.conv import _ConvNd
 from torch.nn.modules.utils import _pair
 
-import my_functionals.custom_functional as myF
-import network.mynn as mynn
+import sseg.my_functionals.custom_functional as myF
+import sseg.network.mynn as mynn
 
 
 class GatedSpatialConv2d(_ConvNd):

@@ -11,9 +11,7 @@ import torch.nn.functional as F
 from sseg.network import Resnet
 from sseg.network.wider_resnet import wider_resnet38_a2
 from sseg.network.mynn import initialize_weights, Norm2d
-
-
-from my_functionals import GatedSpatialConv as gsc
+from sseg.my_functionals import GatedSpatialConv as gsc
 
 import cv2
 import numpy as np
