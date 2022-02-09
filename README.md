@@ -38,7 +38,7 @@ Code:
 
 ```bash
 # 2x RTX 3090
-CUDA_VISIBLE_DEVICES=0,1, python sseg/train.py --lr 0.005 --bs_mult 3 --bs_mult 2
+CUDA_VISIBLE_DEVICES=0,1, python scripts/train.py --lr 0.005 --bs_mult 3 --bs_mult 2
 ```
 
 # Evaluation (Cityscapes)
@@ -46,7 +46,7 @@ CUDA_VISIBLE_DEVICES=0,1, python sseg/train.py --lr 0.005 --bs_mult 3 --bs_mult 
 The code takes around 7 hours
 
 ```bash
-CUDA_VISIBLE_DEVICES=0, python sseg/train.py --evaluate --snapshot checkpoints/best_cityscapes_checkpoint.pth
+CUDA_VISIBLE_DEVICES=0, python scripts/train.py --evaluate --snapshot checkpoints/best_cityscapes_checkpoint.pth
 # or
-CUDA_VISIBLE_DEVICES=0, python sseg/test.py --bs_mult_val 1 --snapshot <path>
+CUDA_VISIBLE_DEVICES=0, python scripts/test.py --bs_mult_val 1 --snapshot <path>
 ```
