@@ -3,12 +3,14 @@ Copyright (C) 2019 NVIDIA Corporation.  All rights reserved.
 Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
 """
 
-from sseg.datasets import cityscapes
+from torch.utils.data import DataLoader
+
 import torchvision.transforms as standard_transforms
 import torchvision.utils as vutils
-import transforms.joint_transforms as joint_transforms
-import transforms.transforms as extended_transforms
-from torch.utils.data import DataLoader
+
+from sseg.datasets import cityscapes
+import sseg.transforms.joint_transforms as joint_transforms
+import sseg.transforms.transforms as extended_transforms
 
 
 def setup_loaders(args):
