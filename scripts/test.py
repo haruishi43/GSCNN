@@ -1,27 +1,18 @@
 #!/usr/bin/env python3
 
-from __future__ import absolute_import
-from __future__ import division
-
 import argparse
-from functools import partial
 import logging
-import math
 import os
-import sys
 
 import torch
 import numpy as np
 from PIL import Image
 
 from sseg.config import cfg, assert_and_infer_cfg
-import datasets
-import sseg.loss as loss
-import network
-import sseg.optimizer as optimizer
+from sseg import datasets, loss, network, optimizer
 
-from utils.misc import AverageMeter, prep_experiment, evaluate_eval, fast_hist
-from utils.f_boundary import eval_mask_boundary
+from sseg.utils.misc import AverageMeter, prep_experiment, evaluate_eval, fast_hist
+from sseg.utils.f_boundary import eval_mask_boundary
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -50,7 +41,7 @@ parser.add_argument(
 parser.add_argument(
     "--eval_thresholds",
     type=str,
-    default="0.0005,0.001875,0.00375,0.005",
+    default="0.00088,,0.001875,0.00375,0.005",
     help="Thresholds for boundary evaluation",
 )
 parser.add_argument("--rescale", type=float, default=1.0, help="Rescaled LR Rate")
@@ -191,7 +182,7 @@ def main():
     # Early evaluation for benchmarking
     default_eval_epoch = 1
     validate(val_loader, net, criterion_val, optim, default_eval_epoch, writer)
-    evaluate(val_loader, net)
+    evaluate(val_loader, net, args)
 
 
 def validate(val_loader, net, criterion, optimizer, curr_epoch, writer):
@@ -307,7 +298,7 @@ def validate(val_loader, net, criterion, optimizer, curr_epoch, writer):
     return val_loss.avg
 
 
-def evaluate(val_loader, net):
+def evaluate(val_loader, net, args):
     """
     Runs the evaluation loop and prints F score
     val_loader: Data loader for validation
@@ -315,43 +306,98 @@ def evaluate(val_loader, net):
     return:
     """
     net.eval()
-    for thresh in args.eval_thresholds.split(","):
-        mf_score1 = AverageMeter()
-        mf_pc_score1 = AverageMeter()
-        ap_score1 = AverageMeter()
-        ap_pc_score1 = AverageMeter()
+    for i, thresh in enumerate(args.eval_thresholds.split(",")):
         Fpc = np.zeros((args.dataset_cls.num_classes))
         Fc = np.zeros((args.dataset_cls.num_classes))
-        for vi, data in enumerate(val_loader):
-            input, mask, edge, img_names = data
-            assert len(input.size()) == 4 and len(mask.size()) == 3
-            assert input.size()[2:] == mask.size()[1:]
-            h, w = mask.size()[1:]
+        val_loader.sampler.set_epoch(i + 1)
+        evaluate_F_score(val_loader, net, thresh, Fpc, Fc)
 
-            batch_pixel_size = input.size(0) * input.size(2) * input.size(3)
-            input, mask_cuda, edge_cuda = input.cuda(), mask.cuda(), edge.cuda()
 
-            with torch.no_grad():
-                seg_out, edge_out = net(input)
+def evaluate_F_score(val_loader, net, thresh, Fpc, Fc):
+    for vi, data in enumerate(val_loader):
+        input, mask, edge, img_names = data
+        assert len(input.size()) == 4 and len(mask.size()) == 3
+        assert input.size()[2:] == mask.size()[1:]
+        input = input.cuda()
 
-            seg_predictions = seg_out.data.max(1)[1].cpu()
-            edge_predictions = edge_out.max(1)[0].cpu()
+        with torch.no_grad():
+            seg_out, _ = net(input)
 
-            logging.info("evaluating: %d / %d" % (vi + 1, len(val_loader)))
-            _Fpc, _Fc = eval_mask_boundary(
-                seg_predictions.numpy(),
-                mask.numpy(),
-                args.dataset_cls.num_classes,
-                bound_th=float(thresh),
-            )
-            Fc += _Fc
-            Fpc += _Fpc
+        seg_predictions = seg_out.data.max(1)[1].cpu()
 
-            del seg_out, edge_out, vi, data
+        print("evaluating: %d / %d" % (vi + 1, len(val_loader)))
+        _Fpc, _Fc = eval_mask_boundary(
+            seg_predictions.numpy(),
+            mask.numpy(),
+            args.dataset_cls.num_classes,
+            bound_th=float(thresh),
+        )
+        Fc += _Fc
+        Fpc += _Fpc
 
+        del seg_out, vi, data
+
+    # if args.apex:
+    #     Fc_tensor = torch.cuda.FloatTensor(Fc)
+    #     torch.distributed.all_reduce(Fc_tensor, op=torch.distributed.ReduceOp.SUM)
+    #     Fc = Fc_tensor.cpu().numpy()
+    #     Fpc_tensor = torch.cuda.FloatTensor(Fpc)
+    #     torch.distributed.all_reduce(Fpc_tensor, op=torch.distributed.ReduceOp.SUM)
+    #     Fpc = Fpc_tensor.cpu().numpy()
+
+    if args.local_rank == 0:
         logging.info("Threshold: " + thresh)
         logging.info("F_Score: " + str(np.sum(Fpc / Fc) / args.dataset_cls.num_classes))
         logging.info("F_Score (Classwise): " + str(Fpc / Fc))
+
+    return Fpc
+
+
+# def evaluate(val_loader, net):
+#     """
+#     Runs the evaluation loop and prints F score
+#     val_loader: Data loader for validation
+#     net: thet network
+#     return:
+#     """
+#     net.eval()
+#     for thresh in args.eval_thresholds.split(","):
+#         mf_score1 = AverageMeter()
+#         mf_pc_score1 = AverageMeter()
+#         ap_score1 = AverageMeter()
+#         ap_pc_score1 = AverageMeter()
+#         Fpc = np.zeros((args.dataset_cls.num_classes))
+#         Fc = np.zeros((args.dataset_cls.num_classes))
+#         for vi, data in enumerate(val_loader):
+#             input, mask, edge, img_names = data
+#             assert len(input.size()) == 4 and len(mask.size()) == 3
+#             assert input.size()[2:] == mask.size()[1:]
+#             h, w = mask.size()[1:]
+
+#             batch_pixel_size = input.size(0) * input.size(2) * input.size(3)
+#             input, mask_cuda, edge_cuda = input.cuda(), mask.cuda(), edge.cuda()
+
+#             with torch.no_grad():
+#                 seg_out, edge_out = net(input)
+
+#             seg_predictions = seg_out.data.max(1)[1].cpu()
+#             edge_predictions = edge_out.max(1)[0].cpu()
+
+#             logging.info("evaluating: %d / %d" % (vi + 1, len(val_loader)))
+#             _Fpc, _Fc = eval_mask_boundary(
+#                 seg_predictions.numpy(),
+#                 mask.numpy(),
+#                 args.dataset_cls.num_classes,
+#                 bound_th=float(thresh),
+#             )
+#             Fc += _Fc
+#             Fpc += _Fpc
+
+#             del seg_out, edge_out, vi, data
+
+#         logging.info("Threshold: " + thresh)
+#         logging.info("F_Score: " + str(np.sum(Fpc / Fc) / args.dataset_cls.num_classes))
+#         logging.info("F_Score (Classwise): " + str(Fpc / Fc))
 
 
 if __name__ == "__main__":
