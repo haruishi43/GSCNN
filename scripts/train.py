@@ -439,7 +439,7 @@ def evaluate(val_loader, net, args):
     for i, thresh in enumerate(args.eval_thresholds.split(",")):
         Fpc = np.zeros((args.dataset_cls.num_classes))
         Fc = np.zeros((args.dataset_cls.num_classes))
-        val_loader.sampler.set_epoch(i + 1)
+        # val_loader.sampler.set_epoch(i + 1)
         evaluate_F_score(val_loader, net, thresh, Fpc, Fc)
 
 

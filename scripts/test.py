@@ -41,7 +41,7 @@ parser.add_argument(
 parser.add_argument(
     "--eval_thresholds",
     type=str,
-    default="0.00088,,0.001875,0.00375,0.005",
+    default="0.00088,0.001875,0.00375,0.005",
     help="Thresholds for boundary evaluation",
 )
 parser.add_argument("--rescale", type=float, default=1.0, help="Rescaled LR Rate")
@@ -94,7 +94,7 @@ parser.add_argument(
 )
 parser.add_argument("--bs_mult", type=int, default=1)
 parser.add_argument("--bs_mult_val", type=int, default=2)
-parser.add_argument("--crop_size", type=int, default=720, help="training crop size")
+parser.add_argument("--crop_size", type=int, default=800, help="training crop size")
 parser.add_argument(
     "--pre_size",
     type=int,
@@ -209,16 +209,12 @@ def validate(val_loader, net, criterion, optimizer, curr_epoch, writer):
         h, w = mask.size()[1:]
 
         batch_pixel_size = input.size(0) * input.size(2) * input.size(3)
-        input, mask_cuda, edge_cuda = input.cuda(), mask.cuda(), edge.cuda()
+        input, mask_cuda = input.cuda(), mask.cuda()
 
         with torch.no_grad():
             seg_out, edge_out = net(input)  # output = (1, 19, 713, 713)
 
-        if args.joint_edgeseg_loss:
-            loss_dict = criterion((seg_out, edge_out), (mask_cuda, edge_cuda))
-            val_loss.update(sum(loss_dict.values()).item(), batch_pixel_size)
-        else:
-            val_loss.update(criterion(seg_out, mask_cuda).item(), batch_pixel_size)
+        val_loss.update(criterion(seg_out, mask_cuda).item(), batch_pixel_size)
 
         seg_predictions = seg_out.data.max(1)[1].cpu()
         edge_predictions = edge_out.max(1)[0].cpu()
@@ -309,7 +305,7 @@ def evaluate(val_loader, net, args):
     for i, thresh in enumerate(args.eval_thresholds.split(",")):
         Fpc = np.zeros((args.dataset_cls.num_classes))
         Fc = np.zeros((args.dataset_cls.num_classes))
-        val_loader.sampler.set_epoch(i + 1)
+        # val_loader.sampler.set_epoch(i + 1)
         evaluate_F_score(val_loader, net, thresh, Fpc, Fc)
 
 
