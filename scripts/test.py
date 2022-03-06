@@ -14,7 +14,7 @@ from sseg import datasets, loss, network, optimizer
 from sseg.utils.misc import AverageMeter, prep_experiment, evaluate_eval, fast_hist
 from sseg.utils.f_boundary import eval_mask_boundary
 
-torch.autograd.set_detect_anomaly(True)
+# torch.autograd.set_detect_anomaly(True)
 
 
 # Argument Parser

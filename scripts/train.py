@@ -13,7 +13,7 @@ from sseg.utils.misc import AverageMeter, prep_experiment, evaluate_eval, fast_h
 from sseg.utils.f_boundary import eval_mask_boundary
 from sseg.utils.debug import timer
 
-torch.autograd.set_detect_anomaly(True)
+# torch.autograd.set_detect_anomaly(True)
 
 
 # Argument Parser
