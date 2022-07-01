@@ -1,6 +1,9 @@
 # Gated-SCNN: Gated Shape CNNs for Semantic Segmentation
 
-Based on https://github.com/NVIDIA/semantic-segmentation.
+Official codes from ICCV2019 is in [github.com/nv-tlabs/GSCNN](https://github.com/nv-tlabs/GSCNN).
+I found that I couldn't train the original code due to some bugs and missing parts, so I updated it here.
+
+WideResNet portions are based on https://github.com/NVIDIA/semantic-segmentation.
 
 ## Setup
 
